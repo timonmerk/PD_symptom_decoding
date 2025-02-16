@@ -7,7 +7,7 @@ import os
 from matplotlib import pyplot as plt
 import matplotlib
 
-matplotlib.use("qtagg")
+#matplotlib.use("qtagg")
 
 
 class UCSFReader:

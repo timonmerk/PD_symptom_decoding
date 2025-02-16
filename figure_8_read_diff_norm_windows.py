@@ -49,10 +49,12 @@ if __name__ == "__main__":
 
     PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
     PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
-
+    CLASSIFICATION = True
+    label_name = "pkg_tremor"
     l_norms = []
-    for norm_window in [5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
+    for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
         OUT_FILE = f"d_out_patient_across_class_{norm_window}.pkl"
+        OUT_FILE = f"d_out_patient_across_{label_name}_class_{CLASSIFICATION}_{str(norm_window)}.pkl"
         PATH_READ = os.path.join(PATH_PER, OUT_FILE)
 
         df = read_pkg_out(PATH_READ)

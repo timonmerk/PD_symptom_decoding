@@ -71,7 +71,7 @@ def run_channel(sub, ch, ch_idx):
 
 if __name__ == "__main__":
 
-    RUN_DECODING = True
+    RUN_DECODING = False
     if RUN_DECODING:
         RUN_ON_CLUSTER = False
         if RUN_ON_CLUSTER is False:
@@ -89,6 +89,7 @@ if __name__ == "__main__":
 
         subs = df_ch_used["sub"].unique()
         for sub in subs:
+            sub = "rcs09l"
             print(f"sub: {sub}")
             ch_names_orig = df_ch_used[df_ch_used["sub"] == sub].iloc[0, :4].values
             ch_names = df_ch_used.columns[:4]
@@ -107,9 +108,9 @@ if __name__ == "__main__":
 
         #ch = ch_names[ch_idx]
 
-        run_channel(sub, ch)
+        #run_channel(sub, ch)
 
-    MERGE_FILES = True
+    MERGE_FILES = False
     if MERGE_FILES:
         PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
         l_ = []
@@ -139,11 +140,16 @@ if __name__ == "__main__":
             if int(ch_1) >= 8:
                 #insert '_' on second last position
                 sub_str = sub[:-1] + "_" + sub[-1:]
-                str_ch_1 = sub_str.upper()+ch_1
-                str_ch_2 = sub_str.upper()+ch_2
+                def get_ch(ch):
+                    if len(ch) == 1:
+                        return "0" + ch
+                    else:
+                        return ch
+                str_ch_1 = sub_str.upper()+get_ch(ch_1)
+                str_ch_2 = sub_str.upper()+get_ch(ch_2)
                 coords_cortex_ch = coords_cortex.query("Contact_ID == @str_ch_1 or Contact_ID == @str_ch_2")
                 if coords_cortex_ch.shape[0] == 0:
-                    continue
+                        continue
                 ch_mean = coords_cortex_ch[["MNI_X", "MNI_Y", "MNI_Z"]].mean()
                 loc = "ECOG"
             else:

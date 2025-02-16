@@ -79,16 +79,15 @@ pdf.close()
 
 ###### PKG plots for each subject
 
-pdf = PdfPages(os.path.join(PATH_FIGURES, "polar_plots_pkg_median.pdf"))
-colors = cm.viridis(np.linspace(0, 1, len(subs)))
+pdf = PdfPages(os.path.join(PATH_FIGURES, "polar_plots_pkg_ind.pdf"))
+
 pkg_scores = ["pkg_tremor", "pkg_dk", "pkg_bk"]
+colors = cm.viridis(np.linspace(0, 1, len(pkg_scores)))
 
-for pkg_score in pkg_scores:
-
+for sub in subs:
     fig, ax = plt.subplots(subplot_kw={'projection': 'polar'}, figsize=(10, 10))
-
-    values_fbands = []
-    for sub, color in zip(subs, colors):
+    for pkg_score, color in zip(pkg_scores, colors):
+        values_fbands = []
         df_sub = df[df["sub"] == sub]
         df_sub["pkg_dt"] = pd.to_datetime(df_sub["pkg_dt"])
         df_sub["hour"] = df_sub["pkg_dt"].dt.hour
@@ -110,14 +109,14 @@ for pkg_score in pkg_scores:
 
         # Create bars
         ax.plot(theta, values_plt, marker='o',
-                label=f"{sub}", color=color, linestyle = "-",)
-    #ax.bar(theta, values, width=0.1)
-    # Set the labels and title
+                label=f"{pkg_score}", color=color, linestyle = "-",)
+        #ax.bar(theta, values, width=0.1)
+        # Set the labels and title
     ax.set_xticks(np.deg2rad(np.arange(0, 360, 30)))
     ax.set_xticklabels(np.arange(0, 24, 2))
     ax.set_theta_offset(np.pi / 2)
     ax.set_theta_direction(-1)
-    ax.set_title(f'{pkg_score} mean')
+    ax.set_title(f'{sub}')
     # add the label
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
     plt.tight_layout()

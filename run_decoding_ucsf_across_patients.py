@@ -18,6 +18,10 @@ from matplotlib.backends.backend_pdf import PdfPages
 
 #PATH_OUT = "/Users/Timon/Documents/UCSF_Analysis/out/merged_normalized_10s_window_length/480"
 PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
+PATH_READ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized/0'
+#PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/normed/480/all_ch_renamed_no_rmap"
+#PATH_READ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std'
+
 PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
 PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
 
@@ -32,7 +36,9 @@ MODEL_NAME = "CB" # "CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"
 if __name__ == "__main__":
 
     # df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed_rmap.csv"), index_col=0)
+    #df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed.csv"), index_col=0)
     df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
+
     #df_all_new = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/normed/480/all_ch_renamed_no_rmap/all_merged_normed_rmap.csv')
     #df_all = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/normed/480/rmap_ch_pkg_dk_class_True/all_merged_normed_rmap.csv')
     # drop all columns that contain "psd"
@@ -51,21 +57,21 @@ if __name__ == "__main__":
             
     d_out = {}
 
-    for CLASS in [True]: # [False, True]
+    for CLASS in [True, False]: # [False, True]
         d_out[CLASS] = {}
-        for label_idx, label_name in enumerate(["pkg_dk"]): #  "pkg_bk", "pkg_tremor"
+        for label_idx, label_name in enumerate(["pkg_dk", "pkg_bk", "pkg_tremor"]): #  
 
             d_out[CLASS][label_name] = {}
 
             mask = ~df_all[label_name].isnull()
             df_all = df_all[mask].copy()
             
-            for loc_ in ["ecog_stn", ]:  # "ecog", "stn"
+            for loc_ in ["ecog_stn", "ecog", "stn"]:  # "ecog", "stn"
                 #if loc_ != "ecog":
                 #    continue
                 d_out[CLASS][label_name][loc_] = {}
                 if PLT_:
-                    pdf_pages = PdfPages(os.path.join(PATH_FIGURES, f"decoding_across_patients_class_{CLASS}_{loc_}_10s_segmentlength_all_{MODEL_NAME}_tests.pdf")) 
+                    pdf_pages = PdfPages(os.path.join(PATH_FIGURES, f"decoding_across_patients_class_{CLASS}_{loc_}_{MODEL_NAME}_check_final.pdf")) 
                 if loc_ == "ecog_stn":
                     df_use = df_all.copy()
                 elif loc_ == "ecog":
@@ -218,7 +224,7 @@ if __name__ == "__main__":
                 if PLT_:
                     pdf_pages.close()
 
-    SAVE_NAME = "LOHO_ALL_LABELS_ALL_GROUPS.pkl"
-    PATH_SAVE = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/normed/480/rmap_ch_pkg_dk_class_True'
-    with open(os.path.join(PATH_SAVE, SAVE_NAME), "wb") as f:
+    SAVE_NAME = "LOHO_ALL_LABELS_ALL_GROUPS_nonorm.pkl"
+    #PATH_SAVE = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/normed/480/rmap_ch_pkg_dk_class_True'
+    with open(os.path.join(PATH_PER, SAVE_NAME), "wb") as f:
         pickle.dump(d_out, f)

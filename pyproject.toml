@@ -67,7 +67,8 @@ dependencies = [
     "jupyter>=1.0.0",
     "bayesian-optimization>=1.4.3",
     "llvmlite>=0.43.0",
-    "torch>=2.5.0",
+    "statannotations>=0.7.1",
+    "ffmpeg>=1.4",
 ]
 
 [project.optional-dependencies]
