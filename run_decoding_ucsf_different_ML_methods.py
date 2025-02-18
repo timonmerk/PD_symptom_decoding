@@ -28,6 +28,9 @@ if __name__ == "__main__":
     PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
     run_idx = int(sys.argv[1])
 
+    print("Number of cores os: ", os.cpu_count())
+    import multiprocessing
+    print("Number of cores multiprocessing: ", multiprocessing.cpu_count())
     #run_idx = 0
     
     df_orig = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed_with_condition.csv"), index_col=0)
@@ -49,7 +52,7 @@ if __name__ == "__main__":
             f"d_out_ML_across_patients_{label_name}_10s_seglength_480_all_{MODEL_NAME}.pkl",
         )
     ):
-        print()
+        pass
     if label_name == "pkg_bk":
         CLASSIFICATION = False
     else:
@@ -171,7 +174,7 @@ if __name__ == "__main__":
                 max_iterations=2000,
                 # time_offsets = 10,
                 output_dimension=3,  # check 10 for better performance
-                device="mps",
+                #device="mps",
                 # conditional="time_delta",  # assigning CEBRA to sample temporally and behaviorally for reference
                 hybrid=False,
                 verbose=True,
@@ -198,7 +201,7 @@ if __name__ == "__main__":
         #arr = np.random.random([100, 10])
         #label_ = np.random.random([100, 1])
         # uv pip 1.7.6 works
-        model.fit(X_train, y_train, verbose=True)
+        model.fit(X_train, y_train)  #  verbose=True
 
         pr = model.predict(X_test)
         feature_importances = None

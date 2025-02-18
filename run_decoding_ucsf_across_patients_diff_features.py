@@ -25,7 +25,6 @@ if __name__ == "__main__":
     PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
     run_idx = int(sys.argv[1])
     
-    run_idx = 0
     label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]
     feature_mods = ["fft", "welch", "bursts", "Hjorth", "Sharpwave", "fooof", "LineLength", "_raw_"]
 
