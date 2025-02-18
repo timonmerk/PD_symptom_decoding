@@ -22,7 +22,11 @@ if __name__ == "__main__":
     PLT_PDF = False
 
     run_idx = int(sys.argv[1])
-    WITH_HOUR = bool(sys.argv[2])
+    WITH_HOUR = int(sys.argv[2])
+    if WITH_HOUR == 1:
+        WITH_HOUR = True
+    else:
+        WITH_HOUR = False
     print(run_idx, WITH_HOUR)
     # run_idx is an integer running for each combination of label_name and norm_window
     label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]

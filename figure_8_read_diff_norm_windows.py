@@ -33,34 +33,48 @@ def read_pkg_out(PATH_):
     for pkg_decode_label in d_out.keys():
         for loc in d_out[pkg_decode_label].keys():
             for sub in d_out[pkg_decode_label][loc].keys():
-                data.append({
-                    "accuracy": d_out[pkg_decode_label][loc][sub]["accuracy"],
-                    "f1": d_out[pkg_decode_label][loc][sub]["f1"],
-                    "ba": d_out[pkg_decode_label][loc][sub]["ba"],
-                    "sub": sub,
-                    "pkg_decode_label": pkg_decode_label,
-                    "loc": loc,
-                })
+                if "accuracy" in d_out[pkg_decode_label][loc][sub].keys():
+                    data.append({
+                        #"accuracy": d_out[pkg_decode_label][loc][sub]["accuracy"],
+                        #"f1": d_out[pkg_decode_label][loc][sub]["f1"],
+                        "per": d_out[pkg_decode_label][loc][sub]["ba"],
+                        "sub": sub,
+                        "pkg_decode_label": pkg_decode_label,
+                        "loc": loc,
+                    })
+                else:
+                    data.append({
+                        "per": d_out[pkg_decode_label][loc][sub]["corr_coeff"],
+                        "sub": sub,
+                        "pkg_decode_label": pkg_decode_label,
+                        "loc": loc,
+                    })
 
     df = pd.DataFrame(data)
     return df
 
 if __name__ == "__main__":
 
-    PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
+    PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per"
     PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
-    CLASSIFICATION = True
-    label_name = "pkg_tremor"
-    l_norms = []
-    for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
-        OUT_FILE = f"d_out_patient_across_class_{norm_window}.pkl"
-        OUT_FILE = f"d_out_patient_across_{label_name}_class_{CLASSIFICATION}_{str(norm_window)}.pkl"
-        PATH_READ = os.path.join(PATH_PER, OUT_FILE)
+    
+    for INCLUDING_TIME in [True, False]:
+        for label_name in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
+            if label_name == "pkg_bk":
+                CLASSIFICATION = False
+            else:
+                CLASSIFICATION = True
+            l_norms = []
+            for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
+                OUT_FILE = f"d_out_patient_across_class_{norm_window}.pkl"
+                OUT_FILE = f"d_out_patient_across_{label_name}_class_{CLASSIFICATION}_{str(norm_window)}_{INCLUDING_TIME}.pkl"
+                PATH_READ = os.path.join(PATH_PER, OUT_FILE)
 
-        df = read_pkg_out(PATH_READ)
-        df = df.query("loc == 'ecog_stn'")
-        df["norm_window"] = norm_window
-        l_norms.append(df)
+                df = read_pkg_out(PATH_READ)
+                df = df.query("loc == 'ecog_stn'")
+                df["norm_window"] = norm_window
+                df["INCLUDING_TIME"] = INCLUDING_TIME
+                l_norms.append(df)
     df_all = pd.concat(l_norms)
 
     plt.figure(figsize=(5, 5), dpi=300)
