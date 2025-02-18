@@ -21,7 +21,7 @@ if __name__ == "__main__":
     # I need 3*8 jobs 0-23 (including 23)
     
     
-    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_normalized_10s_window_length_480"
+    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/0"
     PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
     run_idx = int(sys.argv[1])
     
@@ -143,7 +143,7 @@ if __name__ == "__main__":
             pdf_pages.close()
 
     # save d_out to a pickle file
-    SAVE_NAME = f"d_out_patient_across_{label_name}_feature_mod_{str(feature_mod)}_480_min.pkl"
+    SAVE_NAME = f"d_out_patient_across_nonorm_{label_name}_feature_mod_{str(feature_mod)}.pkl"
 
     with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
         pickle.dump(d_out, f)

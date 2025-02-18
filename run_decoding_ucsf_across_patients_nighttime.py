@@ -31,7 +31,7 @@ MODEL_NAME = "CB" # "CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"
 
 if __name__ == "__main__":
 
-    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_normalized_10s_window_length_480"
+    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/0"
     PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
     run_idx = int(sys.argv[1])
 
@@ -159,6 +159,6 @@ if __name__ == "__main__":
             d_out[CLASS][label_name][loc_][sub_test]["time"] = df_test["pkg_dt"].values
             d_out[CLASS][label_name][loc_][sub_test]["feature_importances"] = feature_importances
 
-        SAVE_NAME = f"LOHO_exludenight_{EXCLUDE_NIGHT_TIME}_CLASS_{CLASS}_label_{label_name}.pkl"
+        SAVE_NAME = f"LOHO_exludenight_nonorm_{EXCLUDE_NIGHT_TIME}_CLASS_{CLASS}_label_{label_name}.pkl"
         with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
             pickle.dump(d_out, f)

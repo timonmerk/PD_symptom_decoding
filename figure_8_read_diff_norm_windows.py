@@ -58,13 +58,13 @@ if __name__ == "__main__":
     PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per"
     PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
     
+    l_norms = []
     for INCLUDING_TIME in [True, False]:
         for label_name in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
             if label_name == "pkg_bk":
                 CLASSIFICATION = False
             else:
                 CLASSIFICATION = True
-            l_norms = []
             for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
                 OUT_FILE = f"d_out_patient_across_class_{norm_window}.pkl"
                 OUT_FILE = f"d_out_patient_across_{label_name}_class_{CLASSIFICATION}_{str(norm_window)}_{INCLUDING_TIME}.pkl"
@@ -77,16 +77,22 @@ if __name__ == "__main__":
                 l_norms.append(df)
     df_all = pd.concat(l_norms)
 
-    plt.figure(figsize=(5, 5), dpi=300)
-    sns.boxplot(x="norm_window", y="ba", data=df_all, showmeans=True, showfliers=False, palette="viridis")
-    #sns.swarmplot(x="norm_window", y="ba", data=df_all, color="black", alpha=0.5, palette="viridis")
-    # put the mean values as text on top of the boxplot
-    means = df_all.groupby("norm_window")["ba"].mean()
-    for i, mean in enumerate(means):
-        plt.text(i, mean, f"{mean:.2f}", ha="center", va="bottom")
+    plt.figure(figsize=(10, 12))
+    idx_ = 0
+    for pkg_decode_label in df_all["pkg_decode_label"].unique():
+        for INCLUDING_TIME in df_all["INCLUDING_TIME"].unique():
+            idx_ += 1
+            plt.subplot(3, 2, idx_)
+            sns.boxplot(x="norm_window", y="per", data=df_all.query(f"pkg_decode_label == '{pkg_decode_label}' and INCLUDING_TIME == {INCLUDING_TIME}"),
+                        showmeans=True, showfliers=False, palette="viridis")
+            #sns.swarmplot(x="norm_window", y="ba", data=df_all, color="black", alpha=0.5, palette="viridis")
+            # put the mean values as text on top of the boxplot
+            means = df_all.query(f"pkg_decode_label == '{pkg_decode_label}' and INCLUDING_TIME == {INCLUDING_TIME}").groupby("norm_window")["per"].mean()
+            for i, mean in enumerate(means):
+                plt.text(i, mean, f"{mean:.2f}", ha="center", va="bottom")
 
-    plt.xlabel("Normalization window [min]")
-    plt.ylabel("Balanced accuracy")
-    plt.title("Different normalization windows")
+            plt.xlabel("Normalization window [min]")
+            plt.ylabel("Balanced accuracy")
+            plt.title(f"{pkg_decode_label} incl.time: {INCLUDING_TIME}")
     plt.tight_layout()
     plt.show(block=True)
