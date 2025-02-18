@@ -40,7 +40,7 @@ if __name__ == "__main__":
     CLASS = CLASSES[run_idx // len(labels)]
     label_name = labels[run_idx % len(labels)]
 
-    df_all_ = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
+    df_all_ = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed_with_condition.csv"), index_col=0)
 
     subs = df_all_["sub"].unique()
     if EXCLUDE_ZERO_UPDRS_DYK:
