@@ -18,46 +18,34 @@ from xgboost import XGBClassifier, XGBRegressor
 import sys
 
 PLT_ = False
-loc_ = "ecog_stn"
 
 if __name__ == "__main__":
     PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
     PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
     
-    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
-    run_idx = int(sys.argv[1])
-    #run_idx = 0
+    # PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
+    # PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+    # run_idx = int(sys.argv[1])
 
     print("Number of cores os: ", os.cpu_count())
     import multiprocessing
     print("Number of cores multiprocessing: ", multiprocessing.cpu_count())
-    #run_idx = 0
+    run_idx = 0
     
     df_orig = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
     df_orig = df_orig[df_orig["condition"] == "stim_off"]
     df_orig = df_orig.drop(columns=["condition"])
 
-    MODEL_NAMES = ["CB", "RF", "XGB", "LM", "PCA_LM", "CEBRA"]
+    MODEL_NAME = "CB"
+
+    CLASSIFICASTIONS = [False, True]
     label_names = ["pkg_dk", "pkg_tremor", "pkg_bk", ]
+    locations = ["ecog", "stn", "ecog_stn"]
 
-    label_name = label_names[run_idx // len(MODEL_NAMES)]
-    MODEL_NAME = MODEL_NAMES[run_idx % len(MODEL_NAMES)]
-
-    #for MODEL_NAME in ["XGB"]: #["CB", "RF",]:  # "XGB", "CEBRA", "LM", "PCA_LM",
-    #   for label_name in ["pkg_dk", "pkg_tremor", "pkg_bk", ]:
-    #       check if outfile exists
-    # if os.path.exists(
-    #     os.path.join(
-    #         PATH_OUT,
-    #         f"d_out_ML_across_patients_{label_name}_10s_seglength_480_all_{MODEL_NAME}.pkl",
-    #     )
-    # ):
-    #     pass
-    if label_name == "pkg_bk":
-        CLASSIFICATION = False
-    else:
-        CLASSIFICATION = True
+    # get the label_name, CLASSIFICATION and locaiton, out of the 3*3*2 possibilities
+    label_name = label_names[run_idx // (len(CLASSIFICASTIONS) * len(locations))]
+    CLASSIFICATION = CLASSIFICASTIONS[(run_idx % (len(CLASSIFICASTIONS) * len(locations))) // len(locations)]
+    loc_ = locations[(run_idx % (len(CLASSIFICASTIONS) * len(locations))) % len(locations)]
 
     df_all = df_orig.copy() #[[c for c in df_orig.columns if "pkg_" in c or c == "sub"]].copy()
 
@@ -76,11 +64,18 @@ if __name__ == "__main__":
     
     if loc_ == "ecog_stn":
         df_use = df_all.copy()
-
-    if "_dk" in label_name:
-        df_use[label_name] = (df_use[label_name].copy() / df_use[label_name].max()) > 0.02
-    elif "_tremor" in label_name:
-        df_use[label_name] = df_use[label_name].copy() > 1
+    elif loc_ == "ecog":
+        df_use = df_all[[c for c in df_all.columns if c.startswith("ch_cortex") or c.startswith("pkg") or c.startswith("sub")]].copy()
+    elif loc_ == "stn":
+        df_use = df_all[[c for c in df_all.columns if c.startswith("ch_subcortex") or c.startswith("pkg") or c.startswith("sub")]].copy()
+    if CLASSIFICATION:
+        if "_dk" in label_name:
+            df_use[label_name] = (df_use[label_name].copy() / df_use[label_name].max()) > 0.02
+        elif "_tremor" in label_name:
+            df_use[label_name] = df_use[label_name].copy() > 1
+        elif "_bk" in label_name:
+            df_use[label_name] = df_use[label_name].copy() > 50
+    
 
     for sub_test in tqdm(subs):  # tqdm(
         d_out[sub_test] = {}
@@ -247,7 +242,7 @@ if __name__ == "__main__":
         d_out[sub_test]["time"] = df_test["pkg_dt"].values
         d_out[sub_test]["feature_importances"] = feature_importances
 
-    SAVE_NAME = f"d_out_ML_across_patients_{label_name}_nonorm_all_{MODEL_NAME}_withpsd.pkl"
+    SAVE_NAME = f"LOHO_main_{label_name}_CLASS_{CLASSIFICATION}_loc_{loc_}_nonorm_withpsd.pkl"
 
     with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
         pickle.dump(d_out, f)
