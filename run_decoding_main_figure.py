@@ -18,19 +18,20 @@ from xgboost import XGBClassifier, XGBRegressor
 import sys
 
 PLT_ = False
+INCLUDE_PSD = False
 
 if __name__ == "__main__":
     PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
     PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
     
-    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
-    run_idx = int(sys.argv[1])
+    # PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
+    # PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+    # run_idx = int(sys.argv[1])
 
     print("Number of cores os: ", os.cpu_count())
     import multiprocessing
     print("Number of cores multiprocessing: ", multiprocessing.cpu_count())
-    #run_idx = 0
+    run_idx = 0
     
     df_orig = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
     df_orig = df_orig[df_orig["condition"] == "stim_off"]
@@ -89,13 +90,17 @@ if __name__ == "__main__":
         df_train = df_train.drop(columns=["sub"])
         y_train = np.array(df_train[label_name])
 
+        cols_use = [c for c in df_train.columns if "pkg" not in c]
+        if not INCLUDE_PSD:
+            cols_use = [c for c in cols_use if "psd" not in c]
+        
         X_train = df_train[
-            [c for c in df_train.columns if "pkg" not in c]
-        ]  #  and "psd" not in c
+            cols_use
+        ]  #  
         X_train["hour"] = df_train["pkg_dt"].dt.hour
 
         X_test = df_test[
-            [c for c in df_test.columns if "pkg" not in c]
+            cols_use
         ]  #  and "psd" not in c
         X_test["hour"] = df_test["pkg_dt"].dt.hour
 
@@ -242,7 +247,10 @@ if __name__ == "__main__":
         d_out[sub_test]["time"] = df_test["pkg_dt"].values
         d_out[sub_test]["feature_importances"] = feature_importances
 
-    SAVE_NAME = f"LOHO_main_{label_name}_CLASS_{CLASSIFICATION}_loc_{loc_}_nonorm_withpsd.pkl"
+    if INCLUDE_PSD:
+        SAVE_NAME = f"LOHO_main_{label_name}_CLASS_{CLASSIFICATION}_loc_{loc_}_withpsd.pkl"
+    else:
+        SAVE_NAME = f"LOHO_main_{label_name}_CLASS_{CLASSIFICATION}_loc_{loc_}_nonorm_withoutpsd.pkl"
 
     with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
         pickle.dump(d_out, f)
