@@ -24,7 +24,7 @@ if __name__ == "__main__":
     PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480/all_merged_normed.csv"
     PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
     
-    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/0"
+    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
     PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
     run_idx = int(sys.argv[1])
 
@@ -33,7 +33,7 @@ if __name__ == "__main__":
     print("Number of cores multiprocessing: ", multiprocessing.cpu_count())
     #run_idx = 0
     
-    df_orig = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed_with_condition.csv"), index_col=0)
+    df_orig = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
     df_orig = df_orig[df_orig["condition"] == "stim_off"]
     df_orig = df_orig.drop(columns=["condition"])
 
@@ -244,7 +244,7 @@ if __name__ == "__main__":
         d_out[sub_test]["time"] = df_test["pkg_dt"].values
         d_out[sub_test]["feature_importances"] = feature_importances
 
-    SAVE_NAME = f"d_out_ML_across_patients_{label_name}_nonorm_all_{MODEL_NAME}.pkl"
+    SAVE_NAME = f"d_out_ML_across_patients_{label_name}_nonorm_all_{MODEL_NAME}_withpsd.pkl"
 
     with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
         pickle.dump(d_out, f)

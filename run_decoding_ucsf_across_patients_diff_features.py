@@ -20,11 +20,13 @@ if __name__ == "__main__":
 
     # I need 3*8 jobs 0-23 (including 23)
     
-    
-    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/0"
+    PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
     PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
     run_idx = int(sys.argv[1])
-    
+
+    # PATH_READ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length'
+    # run_idx = 0
+
     label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]
     feature_mods = ["fft", "welch", "bursts", "Hjorth", "Sharpwave", "fooof", "LineLength", "_raw_"]
 
@@ -38,7 +40,7 @@ if __name__ == "__main__":
     else:
         CLASSIFICATION = True
 
-    df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed_with_condition.csv"), index_col=0)
+    df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
     #df_all = df_all.drop(columns=["Unnamed: 0"])
     df_all = df_all[df_all["condition"] == "stim_off"]
     df_all = df_all.drop(columns=["condition"])
@@ -143,7 +145,7 @@ if __name__ == "__main__":
             pdf_pages.close()
 
     # save d_out to a pickle file
-    SAVE_NAME = f"d_out_patient_across_nonorm_{label_name}_feature_mod_{str(feature_mod)}.pkl"
+    SAVE_NAME = f"d_out_patient_across_nonorm_{label_name}_feature_mod_{str(feature_mod)}_withpsd.pkl"
 
     with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
         pickle.dump(d_out, f)
