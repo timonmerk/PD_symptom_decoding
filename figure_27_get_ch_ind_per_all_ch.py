@@ -71,7 +71,7 @@ def run_channel(sub, ch, ch_idx):
 
 if __name__ == "__main__":
 
-    RUN_DECODING = True
+    RUN_DECODING = False
     if RUN_DECODING:
         RUN_ON_CLUSTER = True
         if RUN_ON_CLUSTER is False:
@@ -118,19 +118,27 @@ if __name__ == "__main__":
     MERGE_FILES = False
     if MERGE_FILES:
         PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
+        PATH_PER = r'/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/ind_ch'
         l_ = []
         for f in os.listdir(PATH_PER):
-            if f.endswith(".csv"):
+            if f.endswith(".csv") and f != "df_per_ind_all_coords.csv":
                 df_all = pd.read_csv(os.path.join(PATH_PER, f))
                 df_all.reset_index(drop=True, inplace=True)
+                if "x" in df_all.columns:
+                    print("")
+                # drop Unnamed: 0 column
+                df_all = df_all.drop(columns=["Unnamed: 0"])
+                if df_all.shape[0] == 0:
+                    continue
                 l_.append(df_all)
         
-        new_df = pd.concat(l_, axis=0)
+        new_df = pd.concat(l_, axis=0).reset_index(drop=True)
         new_df.to_csv(os.path.join(PATH_PER, "df_per_ind_all.csv"))
-
-    MERGE_WITH_COORDS = False
+        
+    MERGE_WITH_COORDS = True
     if MERGE_WITH_COORDS:
         PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
+        PATH_PER = r'/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/ind_ch'
         df = pd.read_csv(os.path.join(PATH_PER, "df_per_ind_all.csv"), index_col=0)
         coords_subcortex = pd.read_csv("/Users/Timon/Documents/py_neuro_ucsf/py_neuromodulation/mni_coords_subcortex.csv")
         # replace coords_subcortex columns x with MNI_X, y with MNI_Y, z with MNI_Z
@@ -154,7 +162,7 @@ if __name__ == "__main__":
                 str_ch_2 = sub_str.upper()+get_ch(ch_2)
                 coords_cortex_ch = coords_cortex.query("Contact_ID == @str_ch_1 or Contact_ID == @str_ch_2")
                 if coords_cortex_ch.shape[0] == 0:
-                        continue
+                    continue
                 ch_mean = coords_cortex_ch[["MNI_X", "MNI_Y", "MNI_Z"]].mean()
                 loc = "ECOG"
             else:

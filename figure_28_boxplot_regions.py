@@ -7,8 +7,9 @@ import numpy as np
 
 
 PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
+PATH_PER = r'/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/ind_ch'
 
-PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
+PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper"
 df = pd.read_csv(os.path.join(PATH_PER, "df_per_ind_all_coords.csv"), index_col=0)
 locs_new = []
 for idx, row in df.iterrows():
@@ -38,7 +39,8 @@ for label_ in df["label"].unique():
     )
     print(f"{label_} p: {p}")
 
-plt.figure(figsize=(5, 5), dpi=300)
+plt.figure(figsize=(7, 4))
+plt.subplot(121)
 ax = sns.boxplot(x="label", y="per", hue="loc", hue_order=hue_order, order=["pkg_bk", "pkg_dk", "pkg_tremor"],
             data=df.query("classification == True"), palette="viridis", showfliers=False,
             showmeans=True); set_box_alpha(ax, 0.5)
@@ -48,12 +50,8 @@ sns.swarmplot(x="label", y="per", hue="loc",
 plt.gca().spines['right'].set_visible(False)
 plt.gca().spines['top'].set_visible(False)
 plt.title("Region-wise performances")
-# 
-plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "region_wise_performances_classification.pdf"))
-plt.show(block=True)
-
-plt.figure(figsize=(5, 5), dpi=300)
+#plt.figure(figsize=(5, 5), dpi=300)
+plt.subplot(122)
 ax = sns.boxplot(x="label", y="per", hue="loc", hue_order=hue_order, order=["pkg_bk", "pkg_dk", "pkg_tremor"],
             data=df.query("classification == False"), palette="viridis", showfliers=False,
             showmeans=True); set_box_alpha(ax, 0.5)
@@ -65,7 +63,7 @@ plt.title("Region-wise performances")
 plt.gca().spines['right'].set_visible(False)
 plt.gca().spines['top'].set_visible(False)
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "region_wise_performances_regression.pdf"))
+plt.savefig(os.path.join(PATH_FIGURES, "region_wise_performances.pdf"))
 plt.show(block=True)
 
 # Surfice plot ecog

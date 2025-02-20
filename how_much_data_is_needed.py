@@ -141,11 +141,14 @@ if __name__ == "__main__":
     #run_idx = 0
 
     # out of len(label_names) * len(durations) runs, run only the run_idx-th run
-    idx_ = int(run_idx)
-    label_idx = idx_ % len(label_names)
-    duration_idx = idx_ // len(label_names)
-    label_name = label_names[label_idx]
-    duration = durations[duration_idx]
+    # idx_ = int(run_idx)
+    # label_idx = idx_ % len(label_names)
+    # duration_idx = idx_ // len(label_names)
+    # label_name = label_names[label_idx]
+    # duration = durations[duration_idx]
+
+    label_name = "pkg_bk"
+    duration = 32
 
     if label_name == "pkg_bk":
         CLASS = False
