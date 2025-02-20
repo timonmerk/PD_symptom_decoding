@@ -67,48 +67,53 @@ def run_channel(sub, ch, ch_idx):
                 "per": per
             })
     df_per_ind = pd.DataFrame(per_ind)
-    df_per_ind.to_csv(os.path.join(PATH_PER, f"df_per_ind_all_{sub}_{ch}.csv"))
+    df_per_ind.to_csv(os.path.join(PATH_OUT, f"df_per_ind_all_{sub}_{ch}.csv"))
 
 if __name__ == "__main__":
 
-    RUN_DECODING = False
+    RUN_DECODING = True
     if RUN_DECODING:
-        RUN_ON_CLUSTER = False
+        RUN_ON_CLUSTER = True
         if RUN_ON_CLUSTER is False:
             PATH_ = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length_all_ch/all_merged.csv"
+            PATH_ = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length/all_merged_with_condition.csv"
             ch_used = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/ch_used_per_sub.csv"
-            PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
+            PATH_OUT = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
         else:
-            PATH_PER = "/data/cephfs-1/home/users/merkt_c/work/UCSF_single_channel/out_dir"
-            PATH_ = "/data/cephfs-1/home/users/merkt_c/work/UCSF_single_channel/all_merged.csv"
-            ch_used = "/data/cephfs-1/home/users/merkt_c/work/UCSF_single_channel/ch_used_per_sub.csv"
+            PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/ind_ch"
+            PATH_ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/all_merged_with_condition.csv"
+            ch_used = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/ch_used_per_sub.csv"
         # num runs = len(sub) * 4
 
         df = pd.read_csv(PATH_, index_col=0)
+        df = df[df["condition"] == "stim_off"]
+        df = df.drop(columns=["condition"])
+        df["pkg_dt"] = pd.to_datetime(df["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
         df_ch_used = pd.read_csv(ch_used, index_col=0)
 
-        subs = df_ch_used["sub"].unique()
-        for sub in subs:
-            sub = "rcs09l"
-            print(f"sub: {sub}")
-            ch_names_orig = df_ch_used[df_ch_used["sub"] == sub].iloc[0, :4].values
-            ch_names = df_ch_used.columns[:4]
-            for ch_idx, ch in enumerate(ch_names):
-                print(f"ch: {ch}")
-                run_channel(sub, ch, ch_idx)
+        # subs = df_ch_used["sub"].unique()
+        # for sub in subs:
+        #     sub = "rcs09l"
+        #     print(f"sub: {sub}")
+        #     ch_names_orig = df_ch_used[df_ch_used["sub"] == sub].iloc[0, :4].values
+        #     ch_names = df_ch_used.columns[:4]
+        #     for ch_idx, ch in enumerate(ch_names):
+        #         print(f"ch: {ch}")
+        #         run_channel(sub, ch, ch_idx)
 
-        #run_idx = int(sys.argv[1])
-        #sub_idx = run_idx // 4
-        #ch_idx = run_idx % 4
+        run_idx = int(sys.argv[1])
+        #run_idx = 0
+        sub_idx = run_idx // 4
+        ch_idx = run_idx % 4
 
         
-        #sub = df_ch_used["sub"].unique()[sub_idx]
-        #ch_names_orig = df_ch_used[df_ch_used["sub"] == sub].iloc[0, :4].values
-        #ch_names = df_ch_used.columns[:4]
+        sub = df_ch_used["sub"].unique()[sub_idx]
+        ch_names_orig = df_ch_used[df_ch_used["sub"] == sub].iloc[0, :4].values
+        ch_names = df_ch_used.columns[:4]
 
-        #ch = ch_names[ch_idx]
+        ch = ch_names[ch_idx]
 
-        #run_channel(sub, ch)
+        run_channel(sub, ch, ch_idx)
 
     MERGE_FILES = False
     if MERGE_FILES:
@@ -123,7 +128,7 @@ if __name__ == "__main__":
         new_df = pd.concat(l_, axis=0)
         new_df.to_csv(os.path.join(PATH_PER, "df_per_ind_all.csv"))
 
-    MERGE_WITH_COORDS = True
+    MERGE_WITH_COORDS = False
     if MERGE_WITH_COORDS:
         PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
         df = pd.read_csv(os.path.join(PATH_PER, "df_per_ind_all.csv"), index_col=0)

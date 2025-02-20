@@ -3,6 +3,7 @@ import os
 
 PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
 PATH_READ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length/all_merged_preprocessed.csv'
+PATH_READ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length/all_merged.csv'
 #PATH_READ_BASE = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized"
 
 df_condition = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/all_artifact_and_stim_condition.csv')
@@ -26,17 +27,18 @@ for idx, row in df_condition.iterrows():
 df_features["condition"].unique()
 # drop None rows in condition
 df_features = df_features.dropna(subset=["condition"]).reset_index(drop=True)
-df_features.to_csv(os.path.join("/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length", "all_merged_preprocessed_with_condition.csv"))
+#df_features.to_csv(os.path.join("/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length", "all_merged_preprocessed_with_condition.csv"))
+df_features.to_csv(os.path.join("/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length", "all_merged_with_condition.csv"))
 
 PLT_ = False
 if PLT_:
     from matplotlib import pyplot as plt
     import numpy as np
 
-    sub = "rcs02r"
+    sub = "rcs10l"
     df_sub = df_features[df_features["sub"] == sub]
     df_sub["condition"].unique()
-    df_psd = df_sub[[f'ch_subcortex_welch_psd_{i}_mean' for i in range(126)]]
+    df_psd = df_sub[[f'ch_subcortex_2_welch_psd_{i}_mean' for i in range(126)]]
     df_psd["condition"] = df_sub["condition"]
     df_stim = df_psd[df_psd["condition"] == "stim"]
     df_stimoff = df_psd[df_psd["condition"] == "stim_off"]
