@@ -93,6 +93,7 @@ def compute_duration(dur):
 
         # shuffle X_train and y_train
         X_train, y_train = shuffle(X_train, y_train, random_state=42)
+        X_train = X_train.reset_index(drop=True)
 
         if CLASS:
             n_samples_per_class = int(dur/4)
@@ -100,6 +101,11 @@ def compute_duration(dur):
             idx_neg = np.where(y_train == 0)[0][:n_samples_per_class]
             X_train = pd.concat([X_train.iloc[idx_pos], X_train.iloc[idx_neg]])
             y_train = np.concatenate([y_train[idx_pos], y_train[idx_neg]])
+        else:
+            n_samples = int(dur/2)
+            idx = np.random.choice(X_train.shape[0], n_samples, replace=False)
+            X_train = X_train.iloc[idx]
+            y_train = y_train[idx]
 
         model.fit(X_train, y_train)
 
@@ -145,10 +151,9 @@ if __name__ == "__main__":
     # label_idx = idx_ % len(label_names)
     # duration_idx = idx_ // len(label_names)
     # label_name = label_names[label_idx]
-    # duration = durations[duration_idx]
+    duration = durations[run_idx]
 
     label_name = "pkg_bk"
-    duration = 32
 
     if label_name == "pkg_bk":
         CLASS = False

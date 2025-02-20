@@ -4,6 +4,6 @@
 #SBATCH --time=23:00:00
 #SBATCH -o logs/dur.out
 #SBATCH -e logs/dur.err
-#SBATCH -a 0
+#SBATCH -a 0-12
 
 uv run how_much_data_is_needed.py $SLURM_ARRAY_TASK_ID

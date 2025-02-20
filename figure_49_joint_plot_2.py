@@ -112,6 +112,9 @@ def get_dur_per_relation(label):
 
     df = pd.concat(df_, axis=0)
     # clip the balanced accuracy to 0.5 and 1
+    df.groupby("dur")["per"].mean()
+    df_[0]
+    df_[1]
     if label != "pkg_bk":
         df["per"] = np.clip(df["per"], 0.5, 1)
 
@@ -267,33 +270,35 @@ if __name__ == "__main__":
                     order_=df_features_comb.groupby("feature_mod")["per"].mean().sort_values(ascending=True).index,
                     hide_ylabel=False)
 
+        df_per_dur_rel = get_dur_per_relation(label_name)
+
         l_models = []
         for ML_ in ["CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"]:
             PATH_READ = os.path.join(PATH_PER, f"d_out_ML_across_patients_{label_name}_nonorm_all_{ML_}_withpsd.pkl")
+            if label_name == "pkg_bk" and ML_ == "RF":  # REMOVE when computed
+                continue
             df = read_per_out(PATH_READ)
             df["model"] = ML_
             l_models.append(df)
         df_models = pd.concat(l_models)
 
         # now the second subplot: Normalization windows
-        if label_name == "pkg_bk":
-            class_ = "False"
-        else:
-            class_ = "True"
-        l_norms = []
-        for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
-            OUT_FILE = f"d_out_patient_across_{label_name}_class_{class_}_{norm_window}.pkl"
-            PATH_READ = os.path.join(PATH_PER, OUT_FILE)
-            if not os.path.exists(PATH_READ):
-                continue
+        # if label_name == "pkg_bk":
+        #     class_ = "False"
+        # else:
+        #     class_ = "True"
+        # l_norms = []
+        # for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
+        #     OUT_FILE = f"d_out_patient_across_{label_name}_class_{class_}_{norm_window}.pkl"
+        #     PATH_READ = os.path.join(PATH_PER, OUT_FILE)
+        #     if not os.path.exists(PATH_READ):
+        #         continue
 
-            df = read_per_out(PATH_READ)
-            #df = df.query("loc == 'ecog_stn'")
-            df["norm_window"] = norm_window
-            l_norms.append(df)
-        df_norm = pd.concat(l_norms)
-
-        df_per_dur_rel = get_dur_per_relation(label_name)
+        #     df = read_per_out(PATH_READ)
+        #     #df = df.query("loc == 'ecog_stn'")
+        #     df["norm_window"] = norm_window
+        #     l_norms.append(df)
+        # df_norm = pd.concat(l_norms)
 
         #plt.subplot(3, 4, 4*idx_+1)
         #plot_boxplot(df_norm, "norm_window", y_label)
