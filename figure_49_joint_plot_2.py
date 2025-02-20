@@ -174,36 +174,43 @@ def plot_per_train_time_relation(df, label, plt_txt=False, hide_ylabel=False):
     #plt.savefig(os.path.join(PATH_FIGURE, f"LOHO_different_training_duration_sub_{label}.pdf"))
 
 def read_columns_and_importances():
-    PATH_FEATURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
-    df_all = pd.read_csv(os.path.join(PATH_FEATURES, "all_merged_normed.csv"), index_col=0)
+    PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
+    df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
+    df_all = df_all[df_all["condition"] == "stim_off"]
+    df_all = df_all.drop(columns=["condition"])
+    df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+    
     df_all = df_all.dropna(axis=1)
-    df_all = df_all.replace([np.inf, -np.inf], np.nan)
-    df_all = df_all.dropna(axis=1)
-    df_all = df_all.drop(columns=["sub",])
     df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"])
     df_all["hour"] = df_all["pkg_dt"].dt.hour
 
     # remove columns that start with pkg
-    df_all = df_all[[c for c in df_all.columns if not c.startswith("pkg")]]
+    df_all = df_all[[c for c in df_all.columns if not c.startswith("pkg") and c != "sub"]]
     columns_ = df_all.columns
-    PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
-    PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
-    PATH_PER = os.path.join(PATH_PER, "LOHO_ALL_LABELS_ALL_GROUPS_exludehour_False.pkl")
+    # PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
+    # PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
+    # PATH_PER = os.path.join(PATH_PER, "LOHO_ALL_LABELS_ALL_GROUPS_exludehour_False.pkl")
 
-    with open(PATH_PER, "rb") as f:
-        d_out = pickle.load(f)
-    return columns_, d_out
+    # with open(PATH_PER, "rb") as f:
+    #     d_out = pickle.load(f)
+    return columns_  # 1362
 
-def plot_best_features(columns_, d_out, pkg_decode_label, cols_show=10):
+def plot_best_features(columns_, pkg_decode_label, cols_show=10):
 
     data = []
     if pkg_decode_label == "pkg_bk":
-        CLASS_ = False
+        FILE_ = "LOHO_main_pkg_bk_CLASS_False_loc_ecog_stn_nonorm_withpsd.pkl"
+    elif pkg_decode_label == "pkg_dk":
+        FILE_ = "LOHO_main_pkg_dk_CLASS_True_loc_ecog_stn_nonorm_withpsd.pkl"
     else:
-        CLASS_ = True
-    d_out_ = d_out[CLASS_][pkg_decode_label]["ecog_stn"]
+        FILE_ = "LOHO_main_pkg_tremor_CLASS_True_loc_ecog_stn_nonorm_withpsd.pkl"
+    
+    with open(os.path.join(PATH_PER, FILE_), "rb") as f:
+        d_out_ = pickle.load(f)
+
     for sub in d_out_.keys():
         data.append(d_out_[sub]["feature_importances"])
+
     fimp = np.array(data)
     mean_fimp = fimp.mean(axis=0)
     cols_sorted = np.array(columns_)[np.argsort(mean_fimp)[::-1]]
@@ -219,11 +226,19 @@ def plot_best_features(columns_, d_out, pkg_decode_label, cols_show=10):
 
 if __name__ == "__main__":
 
-    columns_, d_out = read_columns_and_importances()
+    columns_ = read_columns_and_importances()
     df_all_features = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
 
     plt.figure(figsize=(12, 9))
     for idx_, label_name in enumerate(["pkg_bk", "pkg_dk", "pkg_tremor"]):
+
+        if label_name == "pkg_bk":
+            y_label = "Correlation coefficient"
+        else:
+            y_label = "Balanced accuracy"
+    
+        plt.subplot(3, 4, 4*idx_+4)
+        plot_best_features(columns_, label_name)
 
         l_features = []
         mod_files = [f for f in os.listdir(PATH_PER) if f"d_out_patient_across_nonorm_{label_name}_feature_mod" in f and f.endswith("_withpsd.pkl")]
@@ -245,7 +260,12 @@ if __name__ == "__main__":
         df_all_features_["feature_mod"] = "all"
         df_features_comb = pd.concat([df_features, df_all_features_], axis=0)
 
-        df_features_comb.groupby("feature_mod")["per"].mean()
+        #df_features_comb.groupby("feature_mod")["per"].mean()
+
+        plt.subplot(3, 4, 4*idx_+1)
+        plot_boxplot(df_features_comb, "feature_mod", y_label,
+                    order_=df_features_comb.groupby("feature_mod")["per"].mean().sort_values(ascending=True).index,
+                    hide_ylabel=False)
 
         l_models = []
         for ML_ in ["CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"]:
@@ -275,17 +295,8 @@ if __name__ == "__main__":
 
         df_per_dur_rel = get_dur_per_relation(label_name)
 
-        if label_name == "pkg_bk":
-            y_label = "Correlation coefficient"
-        else:
-            y_label = "Balanced accuracy"
         #plt.subplot(3, 4, 4*idx_+1)
         #plot_boxplot(df_norm, "norm_window", y_label)
-        
-        plt.subplot(3, 4, 4*idx_+1)
-        plot_boxplot(df_features_comb, "feature_mod", y_label,
-                    order_=df_features_comb.groupby("feature_mod")["per"].mean().sort_values(ascending=True).index,
-                    hide_ylabel=False)
         
         plt.subplot(3, 4, 4*idx_+2)
         plot_boxplot(df_models, "model", y_label,
@@ -294,9 +305,6 @@ if __name__ == "__main__":
         
         plt.subplot(3, 4, 4*idx_+3)
         plot_per_train_time_relation(df_per_dur_rel, label_name, hide_ylabel=True)
-
-        plt.subplot(3, 4, 4*idx_+4)
-        plot_best_features(columns_, d_out, label_name)
 
     plt.tight_layout()
     plt.savefig(os.path.join(PATH_FIGURES, "figure_33_joint_plot_1011.pdf"))
