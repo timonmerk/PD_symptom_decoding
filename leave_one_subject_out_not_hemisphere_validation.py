@@ -162,7 +162,7 @@ if __name__ == "__main__":
     # get the combination from label_names and CLASSIFICATIONS
     label_idx = run_idx % len(label_names)
     class_idx = run_idx // len(label_names)
-    get_per(label_names[label_idx], CLASSIFICATIONS[class_idx])
+    get_per(CLASSIFICATIONS[class_idx], label_names[label_idx])
     
     # # get the LOSO performance for 
     # PATH_ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/normed/480'
