@@ -81,7 +81,7 @@ def get_all_ch_performances(CLASSIFICATION, pkg_label, per_):
 
 def get_dur_per_relation(label):
     if label == "pkg_dk":
-        label_find = "_DK_"
+        label_find = "_dk_"
     else:
         label_find = "_"+label+"_"
     files = [f for f in os.listdir(PATH_PER) if "LOHO" in f and "_min.pkl" in f and label_find in f]
@@ -233,7 +233,7 @@ if __name__ == "__main__":
     df_all_features = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
 
     plt.figure(figsize=(12, 9))
-    for idx_, label_name in enumerate(["pkg_bk", "pkg_dk", "pkg_tremor"]):
+    for idx_, label_name in enumerate(["pkg_tremor", "pkg_dk", "pkg_bk"]):
 
         if label_name == "pkg_bk":
             y_label = "Correlation coefficient"

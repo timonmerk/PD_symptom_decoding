@@ -143,7 +143,7 @@ if __name__ == "__main__":
     label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]
     durations = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
 
-    run_idx = sys.argv[1]
+    run_idx = int(sys.argv[1])
     #run_idx = 0
 
     # out of len(label_names) * len(durations) runs, run only the run_idx-th run
