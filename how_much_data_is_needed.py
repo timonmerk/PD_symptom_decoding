@@ -6,21 +6,25 @@ from sklearn import linear_model, metrics, model_selection, ensemble
 from catboost import CatBoostRegressor, Pool, CatBoostClassifier
 from sklearn.utils.class_weight import compute_class_weight
 from sklearn.model_selection import StratifiedShuffleSplit
+import sys
 
 from sklearn.utils import shuffle
 import pickle
 
-PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
-PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
+#PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
+PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
+PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
 
-#PATH_PER = "/data/cephfs-1/home/users/merkt_c/work/UCSF_Analysis/out_per"
-#PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/UCSF_Analysis"
+PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
+PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
 
-label_name = "pkg_bk"
-CLASS = False
+df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
+df_all = df_all[df_all["condition"] == "stim_off"]
+df_all = df_all.drop(columns=["condition"])
+df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
 
-df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
-df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"])
+# df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
+# df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"])
 subs = df_all["sub"].unique()
 dur_l = [df_all.query(f"sub == '{sub}'").shape[0] for sub in subs]
 
@@ -125,16 +129,35 @@ def compute_duration(dur):
         d_out[CLASS][label_name][loc_][sub_test]["feature_importances"] = feature_importances
 
     SAVE_NAME = f"LOHO_{label_name}_{str(dur)}_min.pkl"
-    with open(os.path.join(PATH_PER, SAVE_NAME), "wb") as f:
+    with open(os.path.join(PATH_OUT, SAVE_NAME), "wb") as f:
             pickle.dump(d_out, f)
 
 if __name__ == "__main__":
-    import sys
-    #idx_ = int(sys.argv[1])
 
+    label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]
     durations = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
-    for duration in durations:
-        compute_duration(duration)
+
+    run_idx = sys.argv[1]
+    #run_idx = 0
+
+    # out of len(label_names) * len(durations) runs, run only the run_idx-th run
+    idx_ = int(run_idx)
+    label_idx = idx_ % len(label_names)
+    duration_idx = idx_ // len(label_names)
+    label_name = label_names[label_idx]
+    duration = durations[duration_idx]
+
+    if label_name == "pkg_bk":
+        CLASS = False
+    else:
+        CLASS = True
+
+    compute_duration(duration)
+
+    # CLASS = False
+    
+    # for duration in durations:
+    #     compute_duration(duration) 
         #compute_duration(durations[idx_])
     #from joblib import Parallel, delayed
     #Parallel(n_jobs=4)(delayed(compute_duration)(dur) for dur in [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384])

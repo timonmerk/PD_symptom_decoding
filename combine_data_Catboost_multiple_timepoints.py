@@ -5,10 +5,19 @@ import os
 
 
 if __name__ == "__main__":
+
+    
     PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
     PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
-    df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
-    df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"])
+    PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
+
+    df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
+    df_all = df_all[df_all["condition"] == "stim_off"]
+    df_all = df_all.drop(columns=["condition"])
+    df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+
+    # df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
+    # df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"])
     subs = df_all["sub"].unique()
 
     def running_counter(values):
@@ -48,7 +57,7 @@ if __name__ == "__main__":
         df_duration = pd.DataFrame(l_df)
         print(f"Duration: {consec_duration}")
         print(df_duration.shape)
-        df_duration.to_csv(os.path.join(PATH_READ, f"all_merged_normed_merge_{consec_duration}_consec.csv"))
+        df_duration.to_csv(os.path.join(PATH_READ, f"all_merged_preprocessed_with_condition_pkgnormed_{consec_duration}_consec.csv"))
 
 
 

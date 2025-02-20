@@ -84,7 +84,7 @@ def get_dur_per_relation(label):
         label_find = "_DK_"
     else:
         label_find = "_"+label+"_"
-    files = [f for f in os.listdir(PATH_PER) if "LOHO" in f and"_min.pkl" in f and label_find in f]
+    files = [f for f in os.listdir(PATH_PER) if "LOHO" in f and "_min.pkl" in f and label_find in f]
     df_ = []
     for f in files:
         with open(os.path.join(PATH_PER, f), "rb") as f:
@@ -220,9 +220,32 @@ def plot_best_features(columns_, d_out, pkg_decode_label, cols_show=10):
 if __name__ == "__main__":
 
     columns_, d_out = read_columns_and_importances()
+    df_all_features = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
 
     plt.figure(figsize=(12, 9))
     for idx_, label_name in enumerate(["pkg_bk", "pkg_dk", "pkg_tremor"]):
+
+        l_features = []
+        mod_files = [f for f in os.listdir(PATH_PER) if f"d_out_patient_across_nonorm_{label_name}_feature_mod" in f and f.endswith("_withpsd.pkl")]
+        mods = [f[f.find("feature_mod_")+len("feature_mod_"):f.find("_withpsd")] for f in mod_files]
+
+        for mod_idx, mod in enumerate(mod_files):
+            PATH_READ = os.path.join(PATH_PER, mod)
+            df = read_per_out(PATH_READ)
+            df["feature_mod"] = mods[mod_idx]
+            l_features.append(df)
+        
+        df_features = pd.concat(l_features, axis=0)
+
+        if label_name == "pkg_bk":
+            CLASS_ = False
+        else:
+            CLASS_ = True
+        df_all_features_ = df_all_features.query(f"pkg_decode_label == '{label_name}' and CLASSIFICATION == {CLASS_} and loc == 'ecog_stn'")[["sub", "per", "pkg_decode_label"]].reset_index(drop=True)
+        df_all_features_["feature_mod"] = "all"
+        df_features_comb = pd.concat([df_features, df_all_features_], axis=0)
+
+        df_features_comb.groupby("feature_mod")["per"].mean()
 
         l_models = []
         for ML_ in ["CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"]:
@@ -231,24 +254,6 @@ if __name__ == "__main__":
             df["model"] = ML_
             l_models.append(df)
         df_models = pd.concat(l_models)
-
-        mod_files = [f for f in os.listdir(PATH_PER) if f"d_out_patient_across_{label_name}_feature_mod" in f]
-        mods = [f[f.find("feature_mod_")+len("feature_mod_"):f.find("_480")] for f in mod_files]
-
-        l_features = []
-        for mod_idx, mod in enumerate(mod_files):
-            PATH_READ = os.path.join(PATH_PER, mod)
-            df = read_per_out(PATH_READ)
-            df["feature_mod"] = mods[mod_idx]
-            l_features.append(df)
-        
-        df_features = pd.concat(l_features, axis=0)
-        if label_name == "pkg_bk":
-            df_all_features = get_all_ch_performances(False, label_name, "corr_coeff")
-        else:
-            df_all_features = get_all_ch_performances(True, label_name, "ba")
-        df_all_features["feature_mod"] = "all"
-        df_features_comb = pd.concat([df_features, df_all_features], axis=0)
 
         # now the second subplot: Normalization windows
         if label_name == "pkg_bk":
