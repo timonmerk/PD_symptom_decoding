@@ -45,7 +45,47 @@ for label_name in ["pkg_dk", "pkg_tremor", "pkg_bk"]:
             l_all.append(df)
 df = pd.concat(l_all)
 
-PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf'
+df.groupby(["CLASSIFICATION", "pkg_decode_label", "loc"])["per"].agg([np.mean, np.std]).round(2)
+
+df.to_csv(os.path.join(PATH_PER, "df_main.csv"))
+
+loc_pairs = [("ecog", "stn"), ("ecog", "ecog_stn"), ("stn", "ecog_stn")]
+l_p = []
+l_per = []
+for label in ["pkg_dk", "pkg_tremor", "pkg_bk"]:
+    print(f"Label: {label}")
+    for CLASSIFICATION in [True, False]:
+        print(f"Classification: {CLASSIFICATION}")
+        for loc in ["ecog", "stn", "ecog_stn"]:
+            mean_ = df.query("CLASSIFICATION == @CLASSIFICATION and loc == @loc and pkg_decode_label == @label")["per"].mean()
+            std_ = df.query("CLASSIFICATION == @CLASSIFICATION and loc == @loc and pkg_decode_label == @label")["per"].std()
+            l_per.append({
+                "CLASSIFICATION": CLASSIFICATION,
+                "label": label,
+                "loc": loc,
+                "per" : f"{mean_:.3f} ± {std_:.3f}"
+            }
+            )
+
+        for loc1, loc2 in loc_pairs:
+            print(f"loc1: {loc1}, loc2: {loc2}")
+            gt, p = nm_stats.permutationTest_relative(
+                df.query("CLASSIFICATION == @CLASSIFICATION and loc == @loc1 and pkg_decode_label == @label")["per"],
+                df.query("CLASSIFICATION == @CLASSIFICATION and loc == @loc2 and pkg_decode_label == @label")["per"],
+                False, None, 5000
+            )
+            l_p.append({
+                "CLASSIFICATION": CLASSIFICATION,
+                "label": label,
+                "loc1": loc1,
+                "loc2": loc2,
+                #"gt": gt,
+                "p": p
+            })
+df_p = pd.DataFrame(l_p)
+df_p.to_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_p_comp.csv')
+
+PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper'
 #OUT_FILE = "LOHO_ALL_LABELS_ALL_GROUPS_nonorm.pkl"
 
 def set_box_alpha(ax, alpha=0.5):
@@ -69,6 +109,6 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
         plt.xticks([0, 1, 2], ["ECoG", "SC", "ECoG+SC"], rotation=90)
         plt.xlabel("")
 
-#plt.savefig(os.path.join(PATH_FIGURES, "figure_34_per_groups.pdf"))
+plt.savefig(os.path.join(PATH_FIGURES, "figure_main.pdf"))
 plt.tight_layout()
 plt.show(block=True)

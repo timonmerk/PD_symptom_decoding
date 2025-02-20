@@ -7,8 +7,8 @@ import os
 import seaborn as sns
 import numpy as np
 
-PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per'
-PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
+PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per'
+PATH_FIGURES = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper"
 
 def read_per_out(PATH_):
     with open(PATH_, "rb") as f:
@@ -226,7 +226,7 @@ if __name__ == "__main__":
 
         l_models = []
         for ML_ in ["CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"]:
-            PATH_READ = os.path.join(PATH_PER, f"d_out_ML_across_patients_{label_name}_10s_seglength_480_all_{ML_}.pkl")
+            PATH_READ = os.path.join(PATH_PER, f"d_out_ML_across_patients_{label_name}_nonorm_all_{ML_}_withpsd.pkl")
             df = read_per_out(PATH_READ)
             df["model"] = ML_
             l_models.append(df)
