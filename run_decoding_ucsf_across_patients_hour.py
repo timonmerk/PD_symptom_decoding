@@ -44,6 +44,10 @@ if __name__ == "__main__":
     CLASS = CLASSES[(run_idx // len(labels)) % len(CLASSES)]
     label_name = labels[run_idx % len(labels)]
 
+    label_name = "pkg_dk"
+    EXCLUDE_hour_feature = False
+    CLASS = True
+
     df_all_ = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
     df_all_ = df_all_[df_all_["condition"] == "stim_off"]
     df_all_ = df_all_.drop(columns=["condition"])

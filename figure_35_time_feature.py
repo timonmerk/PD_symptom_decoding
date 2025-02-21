@@ -7,43 +7,61 @@ import os
 import seaborn as sns
 
 
-def read_per(d_out):
+def read_per(d_out, CLASSIFICATION, pkg_label):
     l = []
-    for CLASSIFICATION in d_out.keys():
-        if CLASSIFICATION is True:
-            per_ = "ba"
-        else:
-            per_ = "corr_coeff"
-        for pkg_label in d_out[CLASSIFICATION].keys():
-            for sub in d_out[CLASSIFICATION][pkg_label]["ecog_stn"].keys():
-                l.append({
-                    "sub": sub,
-                    "pkg_label": pkg_label,
-                    "CLASSIFICATION": CLASSIFICATION,
-                    "per": d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub][per_]
-                })
+    #for CLASSIFICATION in d_out.keys():
+    if CLASSIFICATION is True:
+        per_ = "ba"
+    else:
+        per_ = "corr_coeff"
+    #for pkg_label in d_out[CLASSIFICATION].keys():
+    for sub in d_out[CLASSIFICATION][pkg_label]["ecog_stn"].keys():
+        l.append({
+            "sub": sub,
+            "pkg_label": pkg_label,
+            "CLASSIFICATION": CLASSIFICATION,
+            "per": d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub][per_]
+        })
     df_loso = pd.DataFrame(l)
     return df_loso
 
-PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
+PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per"
 PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
 l_ = []
-for exclude_hour in [True, False]:
-    file = f"LOHO_ALL_LABELS_ALL_GROUPS_exludehour_{exclude_hour}.pkl"
-    with open(os.path.join(PATH_PER, file), "rb") as f:
-        d_out = pickle.load(f)
-        df_ = read_per(d_out)
-        df_["hour_feature"] = not exclude_hour
-        l_.append(df_)
+missing_files_ = []
+for pkg_label in ["pkg_dk", "pkg_bk", "pkg_tremor"]:
+    for CLASS_ in [True, False]:
+        for exclude_hour in [True, False]:
+            file = f"LOHO_exludehour_nonorm_{exclude_hour}_CLASS_{CLASS_}_label_{pkg_label}_withpsd.pkl"
+            if os.path.exists(os.path.join(PATH_PER, file)) is False:
+                missing_files_.append(file)
+                continue
+            with open(os.path.join(PATH_PER, file), "rb") as f:
+                d_out = pickle.load(f)
+                df_ = read_per(d_out, CLASS_, pkg_label)
+                df_["hour_feature"] = not exclude_hour
+            l_.append(df_)
 df_h = pd.concat(l_, axis=0)
 
 file = f"LOHO_ALL_LABELS_ALL_GROUPS_HOUR_ONLY.pkl"
-with open(os.path.join(PATH_PER, file), "rb") as f:
-    d_out = pickle.load(f)
-    df_ = read_per(d_out)
-    df_["hour_feature"] = "hour_only"
+l_ = []
+for pkg_label in ["pkg_dk", "pkg_bk", "pkg_tremor"]:
+    for CLASS_ in [True, False]:
+        file = f"HOUR_ONLY_nonorm_CLASS_{CLASS_}_label_{pkg_label}_withpsd.pkl"
+        with open(os.path.join(PATH_PER, file), "rb") as f:
+            d_out = pickle.load(f)
+            df_ = read_per(d_out, CLASS_, pkg_label)
+            df_["hour_feature"] = "hour_only"
+        l_.append(df_)
+df_houronly = pd.concat(l_, axis=0)
+df_h = pd.concat([df_h, df_houronly], axis=0)
 
-df_h = pd.concat([df_h, df_], axis=0)
+# with open(os.path.join(PATH_PER, file), "rb") as f:
+#     d_out = pickle.load(f)
+#     df_ = read_per(d_out)
+#     df_["hour_feature"] = "hour_only"
+
+# df_h = pd.concat([df_h, df_], axis=0)
 
 
 
@@ -136,7 +154,7 @@ sns.swarmplot(data=df_h.query("CLASSIFICATION == False"), x="pkg_label", y="per"
 
 plt.ylabel("Correlation coefficient")
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "figure_35_per_exlude_hour_feature.pdf"))
+#plt.savefig(os.path.join(PATH_FIGURES, "figure_35_per_exlude_hour_feature.pdf"))
 plt.subplot(2, 2, 3)
 ax = sns.boxplot(data=df_n.query("CLASSIFICATION == True"), x="pkg_label", y="per", hue="include_night", palette="viridis", showmeans=True, showfliers=False, order=["pkg_bk", "pkg_dk", "pkg_tremor"]); set_box_alpha(ax)
 sns.swarmplot(data=df_n.query("CLASSIFICATION == True"), x="pkg_label", y="per", hue="include_night", dodge=True, palette="viridis", alpha=0.9, s=2, order=["pkg_bk", "pkg_dk", "pkg_tremor"])
@@ -150,7 +168,7 @@ sns.swarmplot(data=df_n.query("CLASSIFICATION == False"), x="pkg_label", y="per"
 
 plt.ylabel("Correlation coefficient")
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "figure_35_per_exclude_analysis_with_houronly.pdf"))
+#plt.savefig(os.path.join(PATH_FIGURES, "figure_35_per_exclude_analysis_with_houronly.pdf"))
 plt.show(block=True)
 
 
