@@ -233,7 +233,7 @@ if __name__ == "__main__":
     df_all_features = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
 
     plt.figure(figsize=(12, 9))
-    for idx_, label_name in enumerate(["pkg_tremor", "pkg_dk", "pkg_bk"]):
+    for idx_, label_name in enumerate(["pkg_bk", "pkg_dk", "pkg_tremor"]):
 
         if label_name == "pkg_bk":
             y_label = "Correlation coefficient"
@@ -275,8 +275,6 @@ if __name__ == "__main__":
         l_models = []
         for ML_ in ["CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"]:
             PATH_READ = os.path.join(PATH_PER, f"d_out_ML_across_patients_{label_name}_nonorm_all_{ML_}_withpsd.pkl")
-            if label_name == "pkg_bk" and ML_ == "RF":  # REMOVE when computed
-                continue
             df = read_per_out(PATH_READ)
             df["model"] = ML_
             l_models.append(df)

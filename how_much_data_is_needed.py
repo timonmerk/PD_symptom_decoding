@@ -153,6 +153,7 @@ if __name__ == "__main__":
     # label_name = label_names[label_idx]
     duration = durations[run_idx]
 
+    duration = 32
     label_name = "pkg_bk"
 
     if label_name == "pkg_bk":
