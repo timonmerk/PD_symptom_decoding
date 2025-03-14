@@ -7,7 +7,7 @@ import os
 if __name__ == "__main__":
 
     
-    PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf"
+    PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper"
     PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
     PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
 
@@ -40,6 +40,7 @@ if __name__ == "__main__":
     df_all_filter = df_all[[c for c in df_all.columns if c.startswith("pkg") or c.startswith("cum_sum") or "fft" in c or "sub" == c]]
 
     for consec_duration in [2, 5, 10, 20, 50, 100, 200, 500]:
+        print(f"Duration: {consec_duration}")
         idx_larger_ = np.where(df_all["cum_sum"] >= consec_duration)
         # for each index larger, extract the previous conec_duration dataframe and append it to a list
         l_df = []
@@ -61,7 +62,7 @@ if __name__ == "__main__":
 
 
 
-    PLT_ = False
+    PLT_ = True
     if PLT_:
         # set a column cum_sum to count counter iteratively, but reset when counter is 0
         plt.hist(df_all["cum_sum"]*2, bins=50, density=False)

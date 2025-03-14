@@ -2,10 +2,10 @@ addpath("/Users/Timon/Documents/MATLAB/spm12");
 addpath("/Users/Timon/Documents/MATLAB/leaddbs");
 addpath("/Users/Timon/Documents/MATLAB/wjn_toolbox");
 addpath("matlab_funcs")
-PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir';
+PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/ind_ch';
 df = readtable(fullfile(PATH_PER, 'df_per_ind_all_coords.csv'), 'ReadRowNames', true);
 
-colors = colorlover(5);
+% colors = colorlover(5);
 % wjn_plot_surface(fullfile('meshes', 'cortex_bl.nii'), "#FF8000", 1);  % 0, 
 
 % wjn_plot_surface(fullfile('meshes', 'STN_bl.nii'), "#FF8000", 1);  % 0, 

@@ -10,8 +10,10 @@ import matplotlib.cm as cm
 
 PATH_FEATURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
 PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf'
-df_all = pd.read_csv(os.path.join(PATH_FEATURES, "all_merged_normed.csv"), index_col=0)
+#df_all = pd.read_csv(os.path.join(PATH_FEATURES, "all_merged_normed.csv"), index_col=0)
 df_all = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/all_ch_renamed_no_rmap.csv')
+df_all = df_all[df_all["condition"] == "stim_off"]
+
 df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"]).dt.tz_localize("US/Pacific")
 subs = np.sort(df_all["sub"].unique())
 
@@ -108,6 +110,7 @@ df_all["h"] = df_all["pkg_dt"].dt.hour
 # Plot example prediction beta vs decoding
 
 LIMIT_FIRST_15_SAMPLES = False
+PLT_STIM = False
 
 if LIMIT_FIRST_15_SAMPLES:  
     pdf_path = "figure_40_ind_peaks_plots_daytime_first30min.pdf"

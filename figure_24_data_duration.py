@@ -5,12 +5,19 @@ import yaml
 import matplotlib.pyplot as plt
 
 # load ucsf_config.yaml
-with open("ucsf_config.yaml", "r") as f:
-    config = yaml.load(f, Loader=yaml.FullLoader)
-    PATH_FEATURES = os.path.join(config["path_base"], config["features"])
-    PATH_FIGURES = os.path.join(config["path_base"], config["figures"])
+# with open("ucsf_config.yaml", "r") as f:
+#     config = yaml.load(f, Loader=yaml.FullLoader)
+#     PATH_FEATURES = os.path.join(config["path_base"], config["features"])
+#     PATH_FIGURES = os.path.join(config["path_base"], config["figures"])
 
-df = pd.read_csv(os.path.join(PATH_FEATURES, "merged_normalized_10s_window_length", "480", "all_merged_normed.csv"))
+PATH_FIGURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper"
+PATH_FEATURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length'
+
+#df = pd.read_csv(os.path.join(PATH_FEATURES, "merged_normalized_10s_window_length", "480", "all_merged_normed.csv"))
+df = pd.read_csv(os.path.join(PATH_FEATURES, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
+#df_all = df_all.drop(columns=["Unnamed: 0"])
+df = df[df["condition"] == "stim_off"]
+df = df.drop(columns=["condition"])
 
 # for each patient get the number of samples
 series_hours_available = df.groupby("sub").count().iloc[:, 0]/30

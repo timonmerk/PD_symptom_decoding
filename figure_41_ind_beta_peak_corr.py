@@ -6,10 +6,10 @@ from scipy import stats
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
 
-PATH_FEATURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
+#PATH_FEATURES = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
 PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf'
-df_all = pd.read_csv(os.path.join(PATH_FEATURES, "all_merged_normed.csv"), index_col=0)
-df_all = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/all_ch_renamed_no_rmap.csv')
+#df_all = pd.read_csv(os.path.join(PATH_FEATURES, "all_merged_normed.csv"), index_col=0)
+df_all = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_rmap/merged_std_10s_window_length.csv')
 
 subs = df_all["sub"].unique()
 
@@ -237,6 +237,17 @@ res_df = res_df.drop("loc", axis=1)
 df_concat = pd.concat([res_df, performance_df], axis=0)
 df_concat["corr"] = df_concat["corr"].abs()
 df_concat["has_peak"] = df_concat["sub"].apply(lambda x: x not in subs_no_peak)
+
+plt.figure(figsize=(4.5, 7))
+df_plt = df_concat.query("beta == 'all_beta_corr' or beta == 'ind_beta_corr' or beta == 'ML'")
+sns.boxplot(data=df_plt, x="pkg_decode_label", y="corr", hue="beta", palette="viridis", showmeans=True, showfliers=False,
+            boxprops=dict(alpha=0.5), order=["pkg_bk", "pkg_dk", "pkg_tremor"], hue_order=["ML", "all_beta_corr", "ind_beta_corr"])
+sns.swarmplot(data=df_plt, x="pkg_decode_label", y="corr", hue="beta", dodge=True, palette="viridis", alpha=0.9, s=5,
+                order=["pkg_bk", "pkg_dk", "pkg_tremor"], hue_order=["ML", "all_beta_corr", "ind_beta_corr"])
+plt.ylabel("Correlation coefficient")
+plt.title("Beta prediction")
+plt.savefig(os.path.join(PATH_FIGURES, "figure_41_beta_comparison_to_ML.pdf"))
+
 
 plt.figure(figsize=(4, 7))
 df_plt = df_concat.query("beta != 'ML'")

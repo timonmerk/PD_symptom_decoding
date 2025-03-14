@@ -310,7 +310,7 @@ if __name__ == "__main__":
         plot_per_train_time_relation(df_per_dur_rel, label_name, hide_ylabel=True)
 
     plt.tight_layout()
-    plt.savefig(os.path.join(PATH_FIGURES, "figure_33_joint_plot_1011.pdf"))
+    plt.savefig(os.path.join(PATH_FIGURES, "joint_plot.pdf"))
     plt.show(block=True)
 
     print("df")

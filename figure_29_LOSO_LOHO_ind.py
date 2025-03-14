@@ -92,8 +92,8 @@ def write_mean_std(df):
 
 plt.figure(figsize=(7, 4))
 plt.subplot(121)
-sns.boxplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == False"), showfliers=False, showmeans=True, palette="viridis", boxprops=dict(alpha=0.5))
-sns.swarmplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == False"), alpha=0.5, dodge=True, size=2.5, palette="viridis")
+sns.boxplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == False"), showfliers=False, showmeans=True, palette="viridis", boxprops=dict(alpha=0.5), order=["pkg_bk", "pkg_dk", "pkg_tremor"])
+sns.swarmplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == False"), alpha=0.5, dodge=True, size=2.5, palette="viridis", order=["pkg_bk", "pkg_dk", "pkg_tremor"])
 df_t_test_ = get_stats_df("pkg_label", "per", "cv", df.query("CLASSIFICATION == False"))
 df_stats = write_mean_std(df)
 df_stats.to_csv(os.path.join(PATH_PER, "class_loho_loso_ind_per_table.csv"))
@@ -105,13 +105,13 @@ plt.ylabel("Correlation coefficient")
 
 #plt.figure(figsize=(10, 5), dpi=300)
 plt.subplot(122)
-sns.boxplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == True"), showfliers=False, showmeans=True, palette="viridis", boxprops=dict(alpha=0.5))
-sns.swarmplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == True"), alpha=0.5, dodge=True, size=2.5, palette="viridis")
+sns.boxplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == True"), showfliers=False, showmeans=True, palette="viridis", boxprops=dict(alpha=0.5), order=["pkg_bk", "pkg_dk", "pkg_tremor"])
+sns.swarmplot(x="pkg_label", y="per", hue="cv", data=df.query("CLASSIFICATION == True"), alpha=0.5, dodge=True, size=2.5, palette="viridis", order=["pkg_bk", "pkg_dk", "pkg_tremor"])
 df_t_test_ = get_stats_df("pkg_label", "per", "cv", df.query("CLASSIFICATION == True"))
 df_stats = get_stats_df("pkg_label", "per", "cv", df.query("CLASSIFICATION == True"))
 
 plt.ylabel("Balanced accuracy")
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "figure_29_LOSO_LOHO_ind_CLASS_True.pdf"))
+#plt.savefig(os.path.join(PATH_FIGURES, "figure_29_LOSO_LOHO_ind_CLASS_True.pdf"))
 plt.show(block=True)
 

@@ -10,13 +10,53 @@ import pickle
 
 PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper'
 PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
+PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per'
+
 df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
 df_all = df_all[df_all["condition"] == "stim_off"]
 df_all = df_all.drop(columns=["condition"])
+df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+df_all["h"] = df_all["pkg_dt"].dt.hour
+# restrict only to 8 to 20 hours
+df_all = df_all.query("h >= 8 and h <= 20")
+
 list(df_all.columns)
 
 with open('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/LOHO_main_pkg_bk_CLASS_False_loc_ecog_stn_nonorm_withpsd.pkl', "rb") as f:
     d_out = pickle.load(f)
+
+ind_peaks_long = {
+    "rcs02l" : 20,
+    "rcs02r" : 18,
+    "rcs03l" : 13.5,
+    "rcs05l" : 25,
+    "rcs05r" : 25,
+    "rcs06l" : 20,
+    "rcs06r" : 18,
+    "rcs07l" : 20,
+    "rcs07r" : 20,
+    "rcs08l" : 20,
+    "rcs08r" : 20,
+    "rcs09l" : 23,
+    "rcs09r" : 23,
+    "rcs10l" : 27,
+    "rcs10r" : 30,
+    "rcs11l" : 25,
+    "rcs11r" : 17,
+    "rcs12l" : 27,
+    "rcs12r" : 20,
+    "rcs14l" : 25,
+    "rcs15l" : 18,
+    "rcs15r" : 18,
+    "rcs17l" : 25,
+    "rcs17r" : 27,
+    "rcs18l" : 23,
+    "rcs18r" : 23,
+    "rcs19l" : 22,
+    "rcs19r" : 25,
+    "rcs20l" : 18,
+    "rcs20r" : 17,
+}
 
 ind_peaks_short = {
     "rcs02l" : 20,
@@ -52,12 +92,15 @@ ind_peaks_short = {
 }
 
 df_per_ml = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
-# drop Unnamed: 0
 df_per_ml = df_per_ml.drop("Unnamed: 0", axis=1)
+df_per_ml = pd.read_csv(os.path.join(PATH_PER, "df_n.csv"))
+df_per_ml = df_per_ml.query("include_night == False and CLASSIFICATION == False")
+
 
 l_per = []
 for sub in ind_peaks_short.keys():
     ind_beta = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{ind_peaks_short[sub]}_mean"].values
+    ind_beta_long = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{int(ind_peaks_long[sub])}_mean"].values
     low_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_low beta_mean_mean"].values
     high_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_high beta_mean_mean"].values
     all_beta = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{i}_mean" for i in range(8, 31)]].mean(axis=1).values
@@ -65,6 +108,7 @@ for sub in ind_peaks_short.keys():
 
     msk_ = ~np.isnan(pkg_bk)
     ind_beta = ind_beta[msk_]
+    ind_beta_long = ind_beta_long[msk_]
     pkg_bk = pkg_bk[msk_]
     low_beta = low_beta[msk_]
     high_beta = high_beta[msk_]
@@ -73,7 +117,8 @@ for sub in ind_peaks_short.keys():
     per_high_beta = np.corrcoef(high_beta, pkg_bk)[0, 1]
     per_all_beta = np.corrcoef(all_beta, pkg_bk)[0, 1]
     per_ind_beta = np.corrcoef(ind_beta, pkg_bk)[0, 1]
-    per_ml = df_per_ml.query(f"sub == '{sub}' and pkg_decode_label == 'pkg_bk'")["per"].values[0]
+    per_ind_beta_long = np.corrcoef(ind_beta_long, pkg_bk)[0, 1]
+    per_ml = df_per_ml.query(f"sub == '{sub}' and pkg_label == 'pkg_bk'")["per"].values[0]
 
     l_per.append({
         "sub": sub,
@@ -81,27 +126,127 @@ for sub in ind_peaks_short.keys():
         "per_high_beta": np.abs(per_high_beta),
         "per_all_beta": np.abs(per_all_beta),
         "per_ind_beta": np.abs(per_ind_beta),
+        "per_ind_beta_long": np.abs(per_ind_beta_long),
         "per_ml": np.abs(per_ml),
         #"peak_freq": ind_peaks_short[sub]
     })
     
 df_per = pd.DataFrame(l_per)
+
+df_per["has_peak"] = True
+# if sub in rcs05r, rcs07r, rcs12r, rcs18l, rcs20l then has_peak is False
+df_per.loc[df_per["sub"].isin(["rcs05r", "rcs07r", "rcs12r", "rcs18l", "rcs20l"]), "has_peak"] = False
+
+df_per["bg_loc"] = "STN"
+subjects_GP = ["09l", "09r", "10l", "10r", "14l", "19l", "19r"]
+# if sub in subjects_GP then bg_loc is GP
+df_per.loc[df_per["sub"].str.contains("|".join(subjects_GP)), "bg_loc"] = "GP"
+
 # pivot table that contains the performance data
-df_per = df_per.melt(id_vars=["sub",], value_vars=["per_low_beta", "per_high_beta", "per_all_beta", "per_ind_beta", "per_ml"], var_name="model", value_name="per")
+df_per = df_per.melt(id_vars=["sub", "has_peak", "bg_loc"], value_vars=["per_low_beta", "per_high_beta", "per_all_beta", "per_ind_beta", "per_ind_beta_long", "per_ml"], var_name="model", value_name="per")
+
+# delete the rows where had_peak is True and model = per_ind_beta
+df_per = df_per.query("not (has_peak == False and model == 'per_ind_beta')")
+
 per_group = df_per.groupby("model")["per"].mean()
 order_ = ["per_low_beta", "per_high_beta", "per_all_beta", "per_ind_beta", "per_ml"]
+df_per.groupby("model")["per"].std()
+
+#panel a: 
+#box plots one data point per hemisphere, only hemispheres with distinct beta peaks: 
+# Y-axis corr. coeff. ~bradykinesia,
+# X-axis ticks:
+# "canonical (8-35 Hz alpha/beta", "canonical beta 13-35 Hz", "canonical low beta (13-20 Hz)", "individual peak frequency (~+-5 Hz)"
+
+#panel b: 
+#box plots one data point per hemisphere, comparison of hemispheres with vs. without beta peaks:
+# Y-axis corr. coeff ~bradykinesia,
+# X-axis ticks: "canonical (whatever works best in panel a) - no peaks" vs. "canonical (whatever works best in panel a) - with peaks" vs. "individual peak frequency (~+-5 Hz) - with peaks"
+
+plt.figure(figsize=(12, 6))
+plt.subplot(131)
+order_sorted_best = df_per.query("model != 'per_ml'").groupby("model")["per"].mean().sort_values().index
+sns.boxplot(y="per", x="model", data=df_per.query("model != 'per_ml'"), hue="bg_loc",
+            showmeans=True, showfliers=False, order=order_sorted_best, palette="viridis", boxprops=dict(alpha=0.5))
+sns.swarmplot(y="per", x="model", data=df_per.query("model != 'per_ml'"), hue="bg_loc", dodge=True, alpha=0.3, color="black",
+                order=order_sorted_best, legend=False)
+plt.ylabel("Correlation coefficient")
+plt.xticks(rotation=45)
+plt.subplot(132)
+df_plt_2 = df_per.query("model == 'per_high_beta' or model == 'per_ind_beta'").query("bg_loc == 'STN'")
+order_2 = ["per_ind_beta", "per_high_beta"]
+sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order_2)
+sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, color="black", order=order_2, legend=False)
+plt.ylabel("Correlation coefficient")
+plt.title("STN")
+
+plt.subplot(133)
+df_plt_2 = df_per.query("model == 'per_high_beta' or model == 'per_ind_beta'").query("bg_loc == 'GP'")
+order_2 = ["per_ind_beta", "per_high_beta"]
+sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order_2)
+sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, order=order_2, legend=False, color="black")
+plt.ylabel("Correlation coefficient")
+plt.title("GP")
+plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix.pdf"))
+plt.show(block=True)
+
+from py_neuromodulation import nm_stats
+df_per.query("model == 'per_ml'")["per"].values
+subs_ind = df_per.query("model == 'per_ind_beta'")["sub"]
+per_highbeta = df_per.query("model == 'per_high_beta' and bg_loc == 'STN'").query("sub in @subs_ind")["per"].values
+per_indpeak = df_per.query("model == 'per_ind_beta' and bg_loc == 'STN'")["per"].values
+nm_stats.permutationTest_relative(per_highbeta, per_indpeak, False, None, 5000)  # 0.024
+
+per_lowbeta = df_per.query("model == 'per_low_beta' and bg_loc == 'STN'").query("sub in @subs_ind")["per"].values
+per_indpeak = df_per.query("model == 'per_ind_beta' and bg_loc == 'STN'")["per"].values
+nm_stats.permutationTest_relative(per_lowbeta, per_indpeak, False, None, 5000)  # 0.4082
+
+per_highbeta = df_per.query("model == 'per_high_beta' and bg_loc == 'GP'").query("sub in @subs_ind")["per"].values
+per_lowbeta = df_per.query("model == 'per_low_beta' and bg_loc == 'GP'").query("sub in @subs_ind")["per"].values
+per_indpeak = df_per.query("model == 'per_ind_beta' and bg_loc == 'GP'")["per"].values
+nm_stats.permutationTest_relative(per_highbeta, per_indpeak, False, None, 5000)  # 0.3
+nm_stats.permutationTest_relative(per_lowbeta, per_indpeak, False, None, 5000)  # 0.85
+# there is a significant difference between high beta and individual peak beta in the STN but not GP
+
+per_highbeta_peakTrue= df_per.query("model == 'per_high_beta' and bg_loc == 'STN' and has_peak == True")["per"].values
+per_highbeta_peakFalse = df_per.query("model == 'per_high_beta' and bg_loc == 'STN' and has_peak == False")["per"].values
+nm_stats.permutationTest(per_highbeta_peakTrue, per_highbeta_peakFalse, False, None, 5000)  # 0.8
+# there is no sig. difference between high beta with and without peak, in the GP all had a peak
+
+per_highbeta = df_per.query("model == 'per_high_beta' and bg_loc == 'STN'")
+per_lowbeta = df_per.query("model == 'per_low_beta' and bg_loc == 'STN'")
+nm_stats.permutationTest_relative(per_highbeta["per"].values, per_lowbeta["per"].values, False, None, 5000)  # 0.22
+
+per_allbeta = df_per.query("model == 'per_all_beta' and bg_loc == 'STN'")
+nm_stats.permutationTest_relative(per_highbeta["per"].values, per_allbeta["per"].values, False, None, 5000)  # 0.76
+
+per_highbeta = df_per.query("model == 'per_high_beta' and bg_loc == 'GP'")
+per_lowbeta = df_per.query("model == 'per_low_beta' and bg_loc == 'GP'")
+nm_stats.permutationTest_relative(per_highbeta["per"].values, per_lowbeta["per"].values, False, None, 5000)  # 0.64
+
+per_allbeta = df_per.query("model == 'per_low_beta' and bg_loc == 'GP'")
+nm_stats.permutationTest_relative(per_highbeta["per"].values, per_allbeta["per"].values, False, None, 5000)  # 0.64
 
 
+nm_stats.permutationTest_relative(df_per.query("model == 'per_ind_beta'")["per"].values, df_per.query("model == 'per_high_beta'")["per"].values, False, None, 5000)
+
+
+nm_stats.permutationTest_relative(df_per.query("model == 'per_ml'")["per"].values, df_per.query("model == 'per_ind_beta'")["per"].values, False, None, 5000)
+nm_stats.permutationTest_relative(df_per.query("model == 'per_ml'")["per"].values, df_per.query("model == 'per_high_beta'")["per"].values, False, None, 5000)
+nm_stats.permutationTest_relative(df_per.query("model == 'per_ind_beta'")["per"].values, df_per.query("model == 'per_all_beta'")["per"].values, False, None, 5000)
+nm_stats.permutationTest_relative(df_per.query("model == 'per_ind_beta'")["per"].values, df_per.query("model == 'per_ind_beta_long'")["per"].values, False, None, 5000)
 
 plt.figure(figsize=(3/2, 8.2/3))
 sns.boxplot(data=df_per, x="model", y="per", palette="viridis", showmeans=True, showfliers=False, boxprops=dict(alpha=0.5), order=order_)
-sns.swarmplot(data=df_per, x="model", y="per", dodge=False, palette="viridis", alpha=0.9, s=2, order=order_)
+sns.swarmplot(data=df_per, x="model", y="per", dodge=False, palette="viridis", alpha=0.3, s=2, order=order_)
 plt.ylabel("Correlation coefficient")
 plt.title("Beta prediction")
-plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_comp.pdf"))
+#plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_comp.pdf"))
 plt.show(block=True)
 
 df_ind_peaks = pd.DataFrame(ind_peaks_short.items(), columns=["sub", "peak_freq"])
+df_ind_peaks["peak_freq"].mean()
+df_ind_peaks["peak_freq"].std()
 plt.figure(figsize=(3, 8.2/3))
 sns.boxplot(data=df_ind_peaks, y="peak_freq", palette="viridis", showmeans=True, showfliers=False, boxprops=dict(alpha=0.5)
 )
