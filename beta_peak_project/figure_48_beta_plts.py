@@ -6,9 +6,10 @@ from scipy import stats
 import seaborn as sns
 from matplotlib.backends.backend_pdf import PdfPages
 import pickle
+from py_neuromodulation import nm_stats
 
 
-PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper'
+PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper/beta_paper'
 PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
 PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per'
 
@@ -99,35 +100,40 @@ df_per_ml = df_per_ml.query("include_night == False and CLASSIFICATION == False"
 
 l_per = []
 for sub in ind_peaks_short.keys():
-    ind_beta = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{ind_peaks_short[sub]}_mean"].values
-    ind_beta_long = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{int(ind_peaks_long[sub])}_mean"].values
-    low_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_low beta_mean_mean"].values
-    high_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_high beta_mean_mean"].values
-    all_beta = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{i}_mean" for i in range(8, 31)]].mean(axis=1).values
+    power_sum = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
+    
+    ind_beta = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{ind_peaks_short[sub]}_mean"].apply(lambda x: 10**x).values
+    ind_beta_long = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{int(ind_peaks_long[sub])}_mean"].apply(lambda x: 10**x).values
+    low_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_low beta_mean_mean"].apply(lambda x: 10**x).values
+    high_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_high beta_mean_mean"].apply(lambda x: 10**x).values
+    all_beta = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{i}_mean" for i in range(8, 31)]].apply(
+        lambda x: 10**x
+    ).mean(axis=1).values
     pkg_bk = df_all[df_all["sub"] == sub]["pkg_bk"].values
 
     msk_ = ~np.isnan(pkg_bk)
     ind_beta = ind_beta[msk_]
+    power_sum = power_sum[msk_]
     ind_beta_long = ind_beta_long[msk_]
     pkg_bk = pkg_bk[msk_]
     low_beta = low_beta[msk_]
     high_beta = high_beta[msk_]
     all_beta = all_beta[msk_]
-    per_low_beta = np.corrcoef(low_beta, pkg_bk)[0, 1]
-    per_high_beta = np.corrcoef(high_beta, pkg_bk)[0, 1]
-    per_all_beta = np.corrcoef(all_beta, pkg_bk)[0, 1]
-    per_ind_beta = np.corrcoef(ind_beta, pkg_bk)[0, 1]
-    per_ind_beta_long = np.corrcoef(ind_beta_long, pkg_bk)[0, 1]
+    per_low_beta = np.corrcoef(low_beta / power_sum, pkg_bk)[0, 1]
+    per_high_beta = np.corrcoef(high_beta / power_sum, pkg_bk)[0, 1]
+    per_all_beta = np.corrcoef(all_beta / power_sum, pkg_bk)[0, 1]
+    per_ind_beta = np.corrcoef(ind_beta / power_sum, pkg_bk)[0, 1]
+    per_ind_beta_long = np.corrcoef(ind_beta_long / power_sum, pkg_bk)[0, 1]
     per_ml = df_per_ml.query(f"sub == '{sub}' and pkg_label == 'pkg_bk'")["per"].values[0]
 
     l_per.append({
         "sub": sub,
-        "per_low_beta": np.abs(per_low_beta),
-        "per_high_beta": np.abs(per_high_beta),
-        "per_all_beta": np.abs(per_all_beta),
-        "per_ind_beta": np.abs(per_ind_beta),
-        "per_ind_beta_long": np.abs(per_ind_beta_long),
-        "per_ml": np.abs(per_ml),
+        "per_low_beta": per_low_beta,
+        "per_high_beta": per_high_beta,
+        "per_all_beta": per_all_beta,
+        "per_ind_beta": per_ind_beta,
+        "per_ind_beta_long": per_ind_beta_long,
+        "per_ml": per_ml,
         #"peak_freq": ind_peaks_short[sub]
     })
     
@@ -165,6 +171,55 @@ df_per.groupby("model")["per"].std()
 
 plt.figure(figsize=(12, 6))
 plt.subplot(131)
+order = ["per_ind_beta", "per_all_beta"]
+df_plt_1 = df_per.query("model =='per_ind_beta' or model == 'per_all_beta'")
+#df_plt_1 = df_per.query("model != 'per_ml'")
+sns.boxplot(y="per", x="model", data=df_plt_1, #  order=order
+            showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5))
+sns.swarmplot(y="per", x="model", data=df_plt_1, dodge=False, alpha=0.3, legend=True, hue="bg_loc", )  # order=order
+plt.ylabel("Correlation coefficient")
+plt.xticks(rotation=45)
+
+plt.subplot(132)
+df_plt_2 = df_per.query("bg_loc == 'STN'")
+sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
+sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, color="black", order=order, legend=False)
+plt.ylabel("Correlation coefficient")
+plt.title("STN")
+
+plt.subplot(133)
+df_plt_2 = df_per.query("bg_loc == 'GP'")
+sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
+sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, order=order, legend=False, color="black")
+plt.ylabel("Correlation coefficient")
+plt.title("GP")
+plt.tight_layout()
+plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix_2803.pdf"))
+plt.show(block=True)
+
+per_allbeta = df_per.query("model == 'per_all_beta'")["per"].values
+per_indpeak = df_per.query("model == 'per_ind_beta'")["per"].values
+nm_stats.permutationTest(per_allbeta, per_indpeak, False, None, 5000)  # 0.2
+
+per_allbeta_peaks = df_per.query("model == 'per_all_beta' and has_peak == True and bg_loc=='STN'")["per"].values
+per_allbeta_no_peaks = df_per.query("model == 'per_all_beta' and has_peak == False and bg_loc=='STN'")["per"].values
+nm_stats.permutationTest(per_allbeta_peaks, per_allbeta_no_peaks, False, None, 5000)  # 0.87
+
+subs_ind = df_per.query("model == 'per_ind_beta'")["sub"]
+per_all_beta_peaks = df_per.query("model == 'per_all_beta' and bg_loc == 'STN' and has_peak == True").query("sub in @subs_ind")["per"].values
+per_ind_beta_peaks = df_per.query("model == 'per_ind_beta' and bg_loc == 'STN' and has_peak == True").query("sub in @subs_ind")["per"].values
+nm_stats.permutationTest_relative(per_all_beta_peaks, per_ind_beta_peaks, False, None, 5000)  # 0.016
+
+per_allbeta_peaks = df_per.query("model == 'per_all_beta' and has_peak == True and bg_loc=='GP'")["per"].values
+per_indbeta_peaks = df_per.query("model == 'per_ind_beta' and has_peak == True and bg_loc=='GP'")["per"].values
+nm_stats.permutationTest(per_allbeta_peaks, per_indbeta_peaks, False, None, 5000)  # 0.35
+
+
+
+
+
+plt.figure(figsize=(12, 6))
+plt.subplot(131)
 order_sorted_best = df_per.query("model != 'per_ml'").groupby("model")["per"].mean().sort_values().index
 sns.boxplot(y="per", x="model", data=df_per.query("model != 'per_ml'"), hue="bg_loc",
             showmeans=True, showfliers=False, order=order_sorted_best, palette="viridis", boxprops=dict(alpha=0.5))
@@ -190,7 +245,7 @@ plt.title("GP")
 plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix.pdf"))
 plt.show(block=True)
 
-from py_neuromodulation import nm_stats
+
 df_per.query("model == 'per_ml'")["per"].values
 subs_ind = df_per.query("model == 'per_ind_beta'")["sub"]
 per_highbeta = df_per.query("model == 'per_high_beta' and bg_loc == 'STN'").query("sub in @subs_ind")["per"].values

@@ -9,7 +9,7 @@ import pickle
 from tqdm import tqdm
 
 
-PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper'
+PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper/beta_paper'
 PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
 PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per'
 
@@ -97,7 +97,7 @@ df_per_ml = df_per_ml.drop("Unnamed: 0", axis=1)
 df_per_ml = pd.read_csv(os.path.join(PATH_PER, "df_n.csv"))
 df_per_ml = df_per_ml.query("include_night == False and CLASSIFICATION == False")
 
-COMPUTE_EACH_BAND = False
+COMPUTE_EACH_BAND = True
 l_per = []
 for sub in tqdm(ind_peaks_short.keys()):
     for symptom in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
@@ -106,15 +106,22 @@ for sub in tqdm(ind_peaks_short.keys()):
         pkg_label = pkg_label[msk_]
         
         if COMPUTE_EACH_BAND:
+            power_sum = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
+            power_sum = power_sum[msk_]
             for range_hz in range(3, 110):
 
-                ind_band = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(range_hz-2.5), int(range_hz+2.5))]].mean(axis=1).values
+                #ind_band = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(range_hz-2.5), int(range_hz+2.5))]].mean(axis=1).values
+                ind_band = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{int(range_hz)}_mean"].apply(lambda x: 10**x).values
                 ind_band = ind_band[msk_]
-                per_int_band = np.corrcoef(ind_band, pkg_label)[0, 1]
+                
+                #per_int_band = np.corrcoef(ind_band / power_sum, pkg_label)[0, 1]
+                per_int_band = stats.spearmanr(ind_band / power_sum, pkg_label).correlation
+                P_val = stats.spearmanr(ind_band / power_sum, pkg_label).pvalue
 
                 l_per.append({
                     "sub": sub,
                     "per_ind_band": per_int_band,
+                    "p_val": P_val,
                     "band": range_hz,
                     "symptom": symptom,
                     #"peak_freq": ind_peaks_short[sub]
@@ -138,28 +145,70 @@ for sub in tqdm(ind_peaks_short.keys()):
         all_bea = all_beta[msk_]
         per_beta = np.corrcoef(all_bea, pkg_label)[0, 1]
 
-        l_per.append({
-            "sub": sub,
-            "per_ind_band": per_lfband,
-            "band": "3-12",
-            "symptom": symptom,
-        })
+        # l_per.append({
+        #     "sub": sub,
+        #     "per_ind_band": per_lfband,
+        #     "band": "3-12",
+        #     "symptom": symptom,
+        # })
 
-        l_per.append({
-            "sub": sub,
-            "per_ind_band": per_hfband,
-            "band": "60-90",
-            "symptom": symptom,
-        })
+        # l_per.append({
+        #     "sub": sub,
+        #     "per_ind_band": per_hfband,
+        #     "band": "60-90",
+        #     "symptom": symptom,
+        # })
 
-        l_per.append({
-            "sub": sub,
-            "per_ind_band": per_beta,
-            "band": "8-35",
-            "symptom": symptom,
-        })
+        # l_per.append({
+        #     "sub": sub,
+        #     "per_ind_band": per_beta,
+        #     "band": "8-35",
+        #     "symptom": symptom,
+        # })
 
 df_per = pd.DataFrame(l_per)
+df_plt = df_per.query("band != '3-12' and band != '8-35' and band != '60-90'")
+df_plt["has_peak"] = True
+# if sub in rcs05r, rcs07r, rcs12r, rcs18l, rcs20l then has_peak is False
+df_plt.loc[df_per["sub"].isin(["rcs05r", "rcs07r", "rcs12r", "rcs18l", "rcs20l"]), "has_peak"] = False
+df_plt["bg_loc"] = "STN"
+subjects_GP = ["09l", "09r", "10l", "10r", "14l", "19l", "19r"]
+# if sub in subjects_GP then bg_loc is GP
+df_plt.loc[df_plt["sub"].str.contains("|".join(subjects_GP)), "bg_loc"] = "GP"
+
+
+colors = sns.color_palette("viridis", 4)
+plt.figure(figsize=(8, 4))
+plt_var = "p_val" # "per_ind_band" 
+# all_mean = df_plt.query("symptom == 'pkg_bk'").groupby("band")[plt_var].mean()
+# all_var = df_plt.query("symptom == 'pkg_bk'").groupby("band")[plt_var].var()
+# plt.plot(all_mean, label="ALL", color=colors[0])
+# plt.fill_between(all_mean.index, all_mean - all_var, all_mean + all_var, alpha=0.3, color=colors[0])
+
+stn_with_peak = df_plt.query("symptom == 'pkg_bk' and has_peak == True and bg_loc == 'STN'").groupby("band")[plt_var].mean()
+stn_with_peak_var = df_plt.query("symptom == 'pkg_bk' and has_peak == True and bg_loc == 'STN'").groupby("band")[plt_var].var()
+plt.plot(stn_with_peak, label="STN with peak", color=colors[1])
+plt.fill_between(stn_with_peak.index, stn_with_peak - stn_with_peak_var, stn_with_peak + stn_with_peak_var, alpha=0.3, color=colors[1])
+
+stn_without_peak = df_plt.query("symptom == 'pkg_bk' and has_peak == False and bg_loc == 'STN'").groupby("band")[plt_var].mean()
+stn_without_peak_var = df_plt.query("symptom == 'pkg_bk' and has_peak == False and bg_loc == 'STN'").groupby("band")[plt_var].var()
+plt.plot(stn_without_peak, label="STN without peak", color=colors[2])
+plt.fill_between(stn_without_peak.index, stn_without_peak - stn_without_peak_var, stn_without_peak + stn_without_peak_var, alpha=0.3, color=colors[2])
+
+# gp = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'GP'").groupby("band")[plt_var].mean()
+# gp_var = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'GP'").groupby("band")[plt_var].var()
+# plt.plot(gp, label="GP", color=colors[3])
+# plt.fill_between(gp.index, gp - gp_var, gp + gp_var, alpha=0.3, color=colors[3])
+plt.legend()
+plt.ylabel("Pearsson correlation coefficient")
+plt.ylabel("Spearmann correlation coefficient")
+plt.ylabel("p-value")
+plt.xlabel("Frequency [Hz]")
+plt.xlim([5, 35])
+plt.ylim([0, 0.05])
+plt.savefig(os.path.join(PATH_FIGURES, "per_ind_band.pdf"))
+
+
 df_per["per_ind_band_abs"] = np.abs(df_per["per_ind_band"])
 
 #df_per_best = df_per.groupby(["sub", "symptom", "band"])["per_ind_band_abs"].max().reset_index()
