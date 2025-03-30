@@ -76,13 +76,14 @@ for sub in subs:
 df_out = pd.DataFrame(d_out)
 
 plt.figure(figsize=(8, 5))
-for idx_plt_col, col_plt in enumerate(["UPDRS (Off)", "UPDRS (Off-On)"]):
-    for idx_pkg, col_pkg in enumerate(["pkg_bk_mean", "pkg_bk_median", "pkg_bk_max", "pkg_bk_75"]):
+for idx_plt_col, col_plt in enumerate(["UPDRS (Off)", "UPDRS (Off-On)"]):  #  
+    for idx_pkg, col_pkg in enumerate(["pkg_bk_max", "pkg_bk_mean", "pkg_bk_median", "pkg_bk_75"]):  # 
         plt.subplot(2, 4, 1+idx_pkg + idx_plt_col*4)
         # remove inf values
         #idx_not_none = ~df_out[col_pkg].isnull()
         idx_not_inf = np.isfinite(df_out[col_pkg])
         data_plt = df_out[idx_not_inf].groupby(["sub"])[[col_plt, col_pkg]].sum().reset_index()
+        data_plt[col_plt] = data_plt[col_plt] / 2 # since there is a total score
         sb.regplot(data=data_plt, x=col_pkg, y=col_plt)
 
         #sb.regplot(data=df_out, x=col_pkg, y=col_plt)

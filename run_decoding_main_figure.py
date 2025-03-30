@@ -234,6 +234,9 @@ if __name__ == "__main__":
 
         else:
             corr_coeff = np.corrcoef(pr, np.array(y_test))[0, 1]
+            sparman_corr = stats.spearmanr(pr, y_test)
+            d_out[sub_test]["spearman_corr"] = sparman_corr.correlation
+            d_out[sub_test]["spearman_pval"] = sparman_corr.pvalue
             d_out[sub_test]["corr_coeff"] = corr_coeff
             d_out[sub_test]["r2"] = metrics.r2_score(y_test, pr)
             d_out[sub_test]["mse"] = metrics.mean_squared_error(

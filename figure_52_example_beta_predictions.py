@@ -117,10 +117,16 @@ order_ = ["pkg_bk", "pkg_dk", "pkg_tremor"]
 
 
 plt.figure(figsize=(3, 5))
-sns.boxplot(data=df_comp, x="label", y="value", hue="type", palette="viridis", boxprops=dict(alpha=.3), showfliers=False, showmeans=True, order=order_)
-sns.swarmplot(data=df_comp, x="label", y="value", hue="type", dodge=True, color="black", alpha=.5, order=order_, palette="viridis", legend=False)
+df_plt_ = df_comp.copy()
+df_plt_["value"] = np.abs(df_plt_["value"])
+sns.boxplot(data=df_plt_, x="label", y="value",
+            hue="type", palette="viridis", boxprops=dict(alpha=.3),
+            showfliers=False, showmeans=True, order=order_, hue_order=["corr_pr", "corr_ind"])
+sns.swarmplot(data=df_plt_, x="label", y="value",
+              hue="type", dodge=True, color="black", alpha=.5,
+              order=order_, palette="viridis", legend=False, hue_order=["corr_pr", "corr_ind"])
 plt.ylabel("Correlation")
-#plt.savefig(os.path.join(PATH_FIGURES, "predictions_beta_ml_fig2.pdf"))
+plt.savefig(os.path.join(PATH_FIGURES, "predictions_beta_ml_fig2_abs.pdf"))
 plt.show(block=True)
 
 np.sum((df_comp.query("label == 'pkg_bk' and type == 'corr_pr'")["value"].values - np.abs(df_comp.query("label == 'pkg_bk' and type == 'corr_ind'")["value"].values)) > 0)
@@ -129,17 +135,17 @@ np.sum((df_comp.query("label == 'pkg_tremor' and type == 'corr_pr'")["value"].va
 
 from py_neuromodulation import nm_stats
 nm_stats.permutationTest_relative(
-    df_comp.query("label == 'pkg_bk' and type == 'corr_pr'")["value"].values,
-    np.abs(df_comp.query("label == 'pkg_bk' and type == 'corr_ind'")["value"].values),
+    df_plt_.query("label == 'pkg_bk' and type == 'corr_pr'")["value"].values,
+    np.abs(df_plt_.query("label == 'pkg_bk' and type == 'corr_ind'")["value"].values),
     False, None, 5000
-)
+)  # <10^-5
 nm_stats.permutationTest_relative(
-    df_comp.query("label == 'pkg_dk' and type == 'corr_pr'")["value"].values,
-    np.abs(df_comp.query("label == 'pkg_dk' and type == 'corr_ind'")["value"].values),
+    df_plt_.query("label == 'pkg_dk' and type == 'corr_pr'")["value"].values,
+    np.abs(df_plt_.query("label == 'pkg_dk' and type == 'corr_ind'")["value"].values),
     False, None, 5000
-)
+)  # 0.0004
 nm_stats.permutationTest_relative(
-    df_comp.query("label == 'pkg_tremor' and type == 'corr_pr'")["value"].values,
-    np.abs(df_comp.query("label == 'pkg_tremor' and type == 'corr_ind'")["value"].values),
+    df_plt_.query("label == 'pkg_tremor' and type == 'corr_pr'")["value"].values,
+    np.abs(df_plt_.query("label == 'pkg_tremor' and type == 'corr_ind'")["value"].values),
     False, None, 5000
-)
+)  # 0.0014
