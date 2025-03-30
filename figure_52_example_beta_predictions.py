@@ -49,6 +49,7 @@ df_features = df_features[df_features["condition"] == "stim_off"]
 df_features_orig = df_features.copy()
 
 PLT_ = False
+CORR_SPEARMANS = False
 if PLT_:
     pdf_pages = PdfPages(os.path.join(PATH_FIGURES, f"predictions_beta_ml.pdf"))
 
@@ -86,8 +87,12 @@ for label in ["pkg_dk", "pkg_bk", "pkg_tremor"]:
         pr_ = stats.zscore(pr_)
         true_ = stats.zscore(true_)
 
-        corr_ind = np.corrcoef(ind_band, true_)[0, 1]
-        corr_pr = np.corrcoef(pr_, true_)[0, 1]
+        if CORR_SPEARMANS is False:
+            corr_ind = np.corrcoef(ind_band, true_)[0, 1]
+            corr_pr = np.corrcoef(pr_, true_)[0, 1]
+        else:
+            corr_pr = stats.spearmanr(pr_, true_).correlation
+            corr_ind = stats.spearmanr(ind_band, true_).correlation
 
         df_comp.append({
             "sub" : sub,
@@ -125,8 +130,12 @@ sns.boxplot(data=df_plt_, x="label", y="value",
 sns.swarmplot(data=df_plt_, x="label", y="value",
               hue="type", dodge=True, color="black", alpha=.5,
               order=order_, palette="viridis", legend=False, hue_order=["corr_pr", "corr_ind"])
-plt.ylabel("Correlation")
-plt.savefig(os.path.join(PATH_FIGURES, "predictions_beta_ml_fig2_abs.pdf"))
+if CORR_SPEARMANS:
+    plt.ylabel("Spearman's correlation")
+else:
+    plt.ylabel("Pearson's correlation")
+plt.tight_layout()
+plt.savefig(os.path.join(PATH_FIGURES, "predictions_beta_ml_fig2_pearson_abs.pdf"))
 plt.show(block=True)
 
 np.sum((df_comp.query("label == 'pkg_bk' and type == 'corr_pr'")["value"].values - np.abs(df_comp.query("label == 'pkg_bk' and type == 'corr_ind'")["value"].values)) > 0)

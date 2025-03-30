@@ -187,15 +187,52 @@ sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alp
 plt.ylabel("Correlation coefficient")
 plt.title("STN")
 
-plt.subplot(133)
-df_plt_2 = df_per.query("bg_loc == 'GP'")
-sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
-sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, order=order, legend=False, color="black")
-plt.ylabel("Correlation coefficient")
-plt.title("GP")
-plt.tight_layout()
+# plt.subplot(133)
+# df_plt_2 = df_per.query("bg_loc == 'GP'")
+# sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
+# sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, order=order, legend=False, color="black")
+# plt.ylabel("Correlation coefficient")
+# plt.title("GP")
+# plt.tight_layout()
+
 plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix_2803.pdf"))
 plt.show(block=True)
+
+plt.figure(figsize=(3, 5))
+df_gs = pd.read_csv(os.path.join(PATH_PER, "grid_search_mean_sub.csv"))
+df_1 = df_per.query("model == 'per_all_beta'")[["sub", "per"]]
+df_1["type"] = "all beta"
+df_2 = df_gs[["sub", "per_ind_band"]]
+df_2["type"] = "individual best band"
+df_2.rename(columns={"per_ind_band": "per"}, inplace=True)
+df_plt3 = pd.concat([df_1, df_2])
+order = ["individual best band", "all beta"]
+sns.boxplot(y="per", x="type", data=df_plt3, showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
+sns.swarmplot(y="per", x="type", data=df_plt3, dodge=True, alpha=0.3, color="black", order=order, legend=False)
+plt.ylabel("Correlation coefficient")
+# for each subject draw a line between the two points
+for sub in df_plt3["sub"].unique():
+    per_ind = df_plt3.query("sub == @sub and type == 'individual best band'")["per"].values[0]
+    per_all = df_plt3.query("sub == @sub and type == 'all beta'")["per"].values[0]
+    plt.plot([0, 1], [per_ind, per_all], color="gray", alpha=0.4)
+plt.tight_layout()
+plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_ind_gs_best.pdf"))
+
+plt.figure(figsize=(3, 5))
+plt.subplot(121)
+sns.boxplot(y="range_low", data=df_gs, showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5))
+sns.swarmplot(y="range_low", data=df_gs, dodge=True, alpha=0.3, color="black", legend=False)
+plt.subplot(122)
+sns.boxplot(y="range_high", data=df_gs, showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5))
+sns.swarmplot(y="range_high", data=df_gs, dodge=True, alpha=0.3, color="black", legend=False)
+plt.tight_layout()
+
+
+
+per_all_beta = df_plt3.query("type == 'all beta'")["per"].values
+per_ind_beta = df_plt3.query("type == 'individual best band'")["per"].values
+nm_stats.permutationTest_relative(per_all_beta, per_ind_beta, False, None, 5000)  # 0.0001
+
 
 per_allbeta = df_per.query("model == 'per_all_beta'")["per"].values
 per_indpeak = df_per.query("model == 'per_ind_beta'")["per"].values
