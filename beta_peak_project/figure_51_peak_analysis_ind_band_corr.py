@@ -177,29 +177,41 @@ subjects_GP = ["09l", "09r", "10l", "10r", "14l", "19l", "19r"]
 df_plt.loc[df_plt["sub"].str.contains("|".join(subjects_GP)), "bg_loc"] = "GP"
 
 
-colors = sns.color_palette("viridis", 4)
-plt.figure(figsize=(4, 6))
+colors = sns.color_palette("viridis", 2)
 plt_var = "per_ind_band" # "p_val" 
-# all_mean = df_plt.query("symptom == 'pkg_bk'").groupby("band")[plt_var].mean()
-# all_var = df_plt.query("symptom == 'pkg_bk'").groupby("band")[plt_var].var()
-# plt.plot(all_mean, label="ALL", color=colors[0])
-# plt.fill_between(all_mean.index, all_mean - all_var, all_mean + all_var, alpha=0.3, color=colors[0])
 
+plt.figure(figsize=(4, 6))
 plt.subplot(211)
 stn_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'STN'").groupby("band")[plt_var].mean()
 stn_var_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'STN'").groupby("band")[plt_var].var()
-plt.plot(stn_, label="STN with peak", color=colors[1])
+plt.plot(stn_, color=colors[0])
+plt.fill_between(stn_.index, stn_ - stn_var_, stn_ + stn_var_, alpha=0.3, color=colors[0])
+plt.ylabel("Spearmann correlation coefficient")
+plt.xlabel("Frequency [Hz]")
+plt.title("STN")
+plt.xlim([5, 35])
+plt.ylim([-0.1, 0.5])
+
+plt.subplot(212)
+stn_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'GP'").groupby("band")[plt_var].mean()
+stn_var_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'GP'").groupby("band")[plt_var].var()
+plt.plot(stn_, color=colors[1])
+plt.title("GP")
 plt.fill_between(stn_.index, stn_ - stn_var_, stn_ + stn_var_, alpha=0.3, color=colors[1])
 plt.ylabel("Spearmann correlation coefficient")
 plt.xlim([5, 35])
+plt.ylim([-0.1, 0.6])
+plt.xlabel("Frequency [Hz]")
+plt.tight_layout()
+plt.savefig(os.path.join(PATH_FIGURES, "per_ind_whole_range_STN_GP.pdf"))
 
-plt_var = "p_val" 
-plt.subplot(212)
-stn_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'STN'").groupby("band")[plt_var].mean()
-stn_var_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'STN'").groupby("band")[plt_var].var()
-plt.plot(stn_, label="STN with peak", color=colors[1])
-plt.fill_between(stn_.index, stn_ - stn_var_, stn_ + stn_var_, alpha=0.3, color=colors[1])
-plt.ylabel("Spearmann correlation coefficient")
+# plt_var = "p_val" 
+# plt.subplot(212)
+# stn_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'STN'").groupby("band")[plt_var].mean()
+# stn_var_ = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'STN'").groupby("band")[plt_var].var()
+# plt.plot(stn_, label="STN with peak", color=colors[1])
+# plt.fill_between(stn_.index, stn_ - stn_var_, stn_ + stn_var_, alpha=0.3, color=colors[1])
+# plt.ylabel("Spearmann correlation coefficient")
 
 # stn_without_peak = df_plt.query("symptom == 'pkg_bk' and has_peak == False and bg_loc == 'STN'").groupby("band")[plt_var].mean()
 # stn_without_peak_var = df_plt.query("symptom == 'pkg_bk' and has_peak == False and bg_loc == 'STN'").groupby("band")[plt_var].var()
@@ -210,10 +222,10 @@ plt.ylabel("Spearmann correlation coefficient")
 # gp_var = df_plt.query("symptom == 'pkg_bk' and bg_loc == 'GP'").groupby("band")[plt_var].var()
 # plt.plot(gp, label="GP", color=colors[3])
 # plt.fill_between(gp.index, gp - gp_var, gp + gp_var, alpha=0.3, color=colors[3])
-plt.ylabel("p-value")
+#plt.ylabel("p-value")
 plt.xlabel("Frequency [Hz]")
 plt.xlim([5, 35])
-plt.ylim([0, 0.05])
+#plt.ylim([0, 0.05])
 plt.savefig(os.path.join(PATH_FIGURES, "per_ind_band_all.pdf"))
 
 

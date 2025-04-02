@@ -38,15 +38,15 @@ def compute_sub(sub):
 
                 ind_band = ind_band[msk_]
             
-                #per_int_band = np.corrcoef(ind_band / power_sum, pkg_label)[0, 1]
-                res = stats.spearmanr(ind_band / power_sum, pkg_label)
-                per_int_band = res.correlation
-                P_val = res.pvalue
+                per_int_band = np.corrcoef(ind_band / power_sum, pkg_label)[0, 1]
+                #res = stats.spearmanr(ind_band / power_sum, pkg_label)
+                #per_int_band = res.correlation
+                #P_val = res.pvalue
 
                 l_per.append({
                     "sub": sub,
                     "per_ind_band": per_int_band,
-                    "p_val": P_val,
+                    #"p_val": P_val,
                     "range" : f"{range_low}-{range_high}",
                     "symptom": symptom,
                     "range_low": range_low,

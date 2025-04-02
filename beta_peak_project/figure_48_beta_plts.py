@@ -97,7 +97,13 @@ df_per_ml = df_per_ml.drop("Unnamed: 0", axis=1)
 df_per_ml = pd.read_csv(os.path.join(PATH_PER, "df_n.csv"))
 df_per_ml = df_per_ml.query("include_night == False and CLASSIFICATION == False")
 
+def corr_func(x, y, spearman=True):
+    if spearman:
+        return stats.spearmanr(x, y).correlation
+    else:
+        return np.corrcoef(x, y)[0, 1]
 
+SPEARMAN = False
 l_per = []
 for sub in ind_peaks_short.keys():
     power_sum = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
@@ -119,11 +125,11 @@ for sub in ind_peaks_short.keys():
     low_beta = low_beta[msk_]
     high_beta = high_beta[msk_]
     all_beta = all_beta[msk_]
-    per_low_beta = np.corrcoef(low_beta / power_sum, pkg_bk)[0, 1]
-    per_high_beta = np.corrcoef(high_beta / power_sum, pkg_bk)[0, 1]
-    per_all_beta = np.corrcoef(all_beta / power_sum, pkg_bk)[0, 1]
-    per_ind_beta = np.corrcoef(ind_beta / power_sum, pkg_bk)[0, 1]
-    per_ind_beta_long = np.corrcoef(ind_beta_long / power_sum, pkg_bk)[0, 1]
+    per_low_beta = corr_func(low_beta / power_sum, pkg_bk, spearman=SPEARMAN)
+    per_high_beta = corr_func(high_beta / power_sum, pkg_bk, spearman=SPEARMAN)
+    per_all_beta = corr_func(all_beta / power_sum, pkg_bk, spearman=SPEARMAN)
+    per_ind_beta = corr_func(ind_beta / power_sum, pkg_bk, spearman=SPEARMAN)
+    per_ind_beta_long = corr_func(ind_beta_long / power_sum, pkg_bk, spearman=SPEARMAN)
     per_ml = df_per_ml.query(f"sub == '{sub}' and pkg_label == 'pkg_bk'")["per"].values[0]
 
     l_per.append({
@@ -177,25 +183,25 @@ df_plt_1 = df_per.query("model =='per_ind_beta' or model == 'per_all_beta'")
 sns.boxplot(y="per", x="model", data=df_plt_1, #  order=order
             showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5))
 sns.swarmplot(y="per", x="model", data=df_plt_1, dodge=False, alpha=0.3, legend=True, hue="bg_loc", )  # order=order
-plt.ylabel("Correlation coefficient")
+plt.ylabel("Spearman's correlation coefficient")
 plt.xticks(rotation=45)
 
 plt.subplot(132)
 df_plt_2 = df_per.query("bg_loc == 'STN'")
 sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
 sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, color="black", order=order, legend=False)
-plt.ylabel("Correlation coefficient")
+plt.ylabel("Spearman's correlation coefficient")
 plt.title("STN")
 
-# plt.subplot(133)
-# df_plt_2 = df_per.query("bg_loc == 'GP'")
-# sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
-# sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, order=order, legend=False, color="black")
-# plt.ylabel("Correlation coefficient")
-# plt.title("GP")
-# plt.tight_layout()
+plt.subplot(133)
+df_plt_2 = df_per.query("bg_loc == 'GP'")
+sns.boxplot(y="per", x="model", data=df_plt_2, hue="has_peak", showmeans=True, showfliers=False, palette="viridis", boxprops=dict(alpha=0.5), order=order)
+sns.swarmplot(y="per", x="model", data=df_plt_2, hue="has_peak", dodge=True, alpha=0.3, order=order, legend=False, color="black")
+plt.ylabel("Spearman's correlation coefficient")
+plt.title("GP")
+plt.tight_layout()
 
-plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix_2803.pdf"))
+plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix_0204.pdf"))
 plt.show(block=True)
 
 plt.figure(figsize=(3, 5))
@@ -231,7 +237,7 @@ plt.tight_layout()
 
 per_all_beta = df_plt3.query("type == 'all beta'")["per"].values
 per_ind_beta = df_plt3.query("type == 'individual best band'")["per"].values
-nm_stats.permutationTest_relative(per_all_beta, per_ind_beta, False, None, 5000)  # 0.0001
+nm_stats.permutationTest_relative(per_all_beta, per_ind_beta, False, None, 5000)  # 0.8
 
 
 per_allbeta = df_per.query("model == 'per_all_beta'")["per"].values
