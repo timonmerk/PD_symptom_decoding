@@ -97,7 +97,7 @@ def corr_func(x, y, spearman=True):
     else:
         return np.corrcoef(x, y)[0, 1]
 
-SPEARMAN = True
+SPEARMAN = True  # keep only Spearman correlation
 l_per = []
 for sub in ind_peaks_short.keys():
     power_sum = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values

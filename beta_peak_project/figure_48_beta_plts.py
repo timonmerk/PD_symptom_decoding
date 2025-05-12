@@ -201,7 +201,7 @@ plt.ylabel("Spearman's correlation coefficient")
 plt.title("GP")
 plt.tight_layout()
 
-plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix_0204.pdf"))
+#plt.savefig(os.path.join(PATH_FIGURES, "figure_beta_peak_comp_fix_0204.pdf"))
 plt.show(block=True)
 
 plt.figure(figsize=(3, 5))

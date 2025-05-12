@@ -82,7 +82,7 @@ x_ecog = list(
         np.abs(df.query ("loc == 'MC' or loc == 'SC'").query("classification == False").query("label == 'pkg_bk'")["x"].values.round(2))
     )
 print(x_ecog)
-# [-27.51, 37.47, -24.64, 37.89, -26.23, 36.03, -21.25, 31.18, -22.99, 27.1, 25.71, -22.37, 30.78, -26.88, 26.83, 27.97, 26.04, -17.79, 26.48, 23.53, -21.97, -21.39, 35.51, 22.26, 32.63, -27.31, 37.24, 27.52, 29.99, 32.37, -26.31, 30.33, -22.09, -28.03, 28.6, -27.56, 26.31, -19.68, -26.25, -32.14, 31.19, -34.44, -32.16, 32.03, -32.5, 29.34, -30.97, -32.27, -21.77, -25.36, 29.63, -35.65, -21.69, -24.71, 27.9, -31.9, -25.05]
+# [27.51, 37.47, 26.23, 36.03, 21.25, 31.18, 22.99, 27.1, 25.71, 22.37, 30.78, 26.88, 26.83, 27.97, 26.04, 17.79, 26.48, 23.53, 21.97, 21.39, 35.51, 22.26, 32.63, 27.31, 37.24, 27.52, 29.99, 26.31, 30.33, 22.09, 28.6, 27.56, 26.31, 19.68, 26.25, 32.14, 31.19, 34.44, 32.16, 32.03, 32.5, 29.34, 32.72, 30.97, 32.27, 21.77, 25.36, 29.63, 35.65, 21.69, 24.71, 27.9, 31.9, 25.05]
 y_ecog = list(
         df.query ("loc == 'MC' or loc == 'SC'").query("classification == False").query("label == 'pkg_bk'")["y"].values.round(2)
     )
@@ -100,6 +100,9 @@ per_ecog = list(
 # [0.79, 0.65, -0.15, 0.34, 0.75, 0.55, 0.55, 0.44, 0.27, 0.25, 0.83, 0.08, 0.22, 0.84, 0.83, 0.82, 0.76, 0.81, 0.8, 0.75, 0.79, 0.61, 0.58, 0.68, 0.84, 0.65, 0.62, 0.63, 0.82, -0.54, 0.79, 0.77, 0.76, 0.74, 0.65, 0.83, 0.77, 0.78, 0.52, 0.54, -0.36, 0.84, 0.46, -0.34, 0.81, 0.48, 0.76, 0.78, 0.62, 0.76, 0.48, 0.8, 0.72, 0.73, 0.55, 0.88, 0.6]
 # print([0.5 for _ in range(len(per_ecog))])
 # [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
+
+print([0.5 for _ in range(len(z_ecog))])
+# [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
 
 def print_surfice(x, y, z, per, per_):
     print("BEGIN")
@@ -168,6 +171,26 @@ print_surfice(
         np.abs(df.query ("loc == 'MC' or loc == 'SC'").query("classification == True").query("label == 'pkg_tremor'")["per"].values.round(2))
     )))]
 )
+
+# PLOT for just regions without per
+print_surfice(
+     list(
+        df.query ("loc == 'MC' or loc == 'SC'").query("classification == True").query("label == 'pkg_tremor'")["x"].values.round(2)
+    ),
+    list(
+        df.query ("loc == 'MC' or loc == 'SC'").query("classification == True").query("label == 'pkg_tremor'")["y"].values.round(2)
+    ),
+    list(
+        df.query ("loc == 'MC' or loc == 'SC'").query("classification == True").query("label == 'pkg_tremor'")["z"].values.round(2)
+    ),
+    [0.5 for _ in range(len(list(
+        np.abs(df.query ("loc == 'MC' or loc == 'SC'").query("classification == True").query("label == 'pkg_tremor'")["per"].values.round(2))
+    )))],
+    [0.5 for _ in range(len(list(
+        np.abs(df.query ("loc == 'MC' or loc == 'SC'").query("classification == True").query("label == 'pkg_tremor'")["per"].values.round(2))
+    )))]
+) # PATH PLT:
+# PATH_ = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/ECoG_plt_surfice/ECOG_coords_plt.png'
 
 print()
 # BEGIN
