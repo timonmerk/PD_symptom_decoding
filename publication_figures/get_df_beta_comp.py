@@ -41,39 +41,39 @@ ind_peaks_short = {
 }
 
 ind_peaks_long = {
-    "rcs02l" : 20,
-    "rcs02r" : 18,
-    "rcs03l" : 13.5,
-    "rcs05l" : 26,
-    "rcs05r" : 26,
-    "rcs06l" : 28,
-    "rcs06r" : 18,
-    "rcs07l" : 13,
-    "rcs07r" : 8, # 
-    "rcs08l" : 25,  # none
-    "rcs08r" : 27,
-    "rcs09l" : 24,
-    "rcs09r" : 23,
-    "rcs10l" : 27, # none
-    "rcs10r" : 29,
-    "rcs11l" : 27,
-    "rcs11r" : 25,
-    "rcs12l" : 28,
-    "rcs12r" : 28, # none
-    "rcs14l" : 25,
-    "rcs15l" : 22,
-    "rcs15r" : 18,
-    "rcs17l" : 27,
-    "rcs17r" : 29,
-    "rcs18l" : 23, # none
-    "rcs18r" : 23,
-    "rcs19l" : 10,
-    "rcs19r" : 22,
-    "rcs20l" : 17,
-    "rcs20r" : 17,
+    "rcs02l" : 20,              # STN
+    "rcs02r" : 18,              # STN
+    "rcs03l" : 13.5,            # STN
+    "rcs05l" : 26,              # STN
+    "rcs05r" : 26,              # STN
+    "rcs06l" : 28,              # STN
+    "rcs06r" : 18,              # STN
+    "rcs07l" : 13,              # STN
+    "rcs07r" : 8,               # STN
+    "rcs08l" : 25,  # none      # STN
+    "rcs08r" : 27,              # STN
+    "rcs09l" : 24,              # GP
+    "rcs09r" : 23,              # GP
+    "rcs10l" : 27, # none       # GP
+    "rcs10r" : 29,              # GP
+    "rcs11l" : 27,              # STN
+    "rcs11r" : 25,              # STN
+    "rcs12l" : 28,              # STN
+    "rcs12r" : 28, # none       # STN
+    "rcs14l" : 25,              # STN
+    "rcs15l" : 22,              # STN
+    "rcs15r" : 18,              # STN
+    "rcs17l" : 27,              # STN
+    "rcs17r" : 29,              # STN
+    "rcs18l" : 23, # none       # STN
+    "rcs18r" : 23,              # STN
+    "rcs19l" : 10,              # GP
+    "rcs19r" : 22,              # GP
+    "rcs20l" : 17,              # STN
+    "rcs20r" : 17,              # STN
 }
 
-
+subs_GP = ["rcs09l", "rcs09r", "rcs10l", "rcs10r", "rcs14r", "rcs19l", "rcs19r"]
 #patients_without_peak = ["rcs05r", "rcs07r", "rcs12l", "rcs18l", "rcs20l"]
 patients_without_peak = [ "rcs08l", "rcs10l", "rcs12r", "rcs18l"]
 
@@ -89,7 +89,11 @@ df_features["h"] = df_features["pkg_dt"].dt.hour
 
 df_features_orig = df_features.copy()
 
-df_features_orig = df_features_orig.query("h >= 8 and h <= 20")
+INCLUDE_NIGHT = False
+loc = 1 # 0 - ECoG, 1 - STN, 2 Both
+
+if INCLUDE_NIGHT is False:
+    df_features_orig = df_features_orig.query("h >= 8 and h <= 20")
 
 PLT_ = False
 CORR_SPEARMANS = False
@@ -106,8 +110,13 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
     df_features = df_features.replace([np.inf, -np.inf], np.nan)
     df_features = df_features.dropna(axis=1)
 
-    file = f"LOHO_main_{label}_CLASS_False_loc_ecog_stn_nonorm_withpsd.pkl"
-    #file = f"LOHO_main_{label}_CLASS_False_loc_ecog_nonorm_withpsd.pkl"  # select here for ECoG only
+    if loc == 0:  # 0 - ECoG, 1 - STN, 2 Both
+        file = f"LOHO_main_{label}_CLASS_False_loc_ecog_nonorm_withpsd.pkl"
+    elif loc == 1:
+        file = f"LOHO_main_{label}_CLASS_False_loc_stn_nonorm_withpsd.pkl"
+    elif loc == 2:
+        file = f"LOHO_main_{label}_CLASS_False_loc_ecog_stn_nonorm_withpsd.pkl"
+
     with open(f"{PATH_PER}/{file}", "rb") as f:
         d_out = pickle.load(f)
 
@@ -144,7 +153,7 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
 
         df_comp.append({
             "sub" : sub,
-            "corr_ind" : corr_ind if sub not in patients_without_peak else np.nan,
+            "corr_ind" : corr_ind, #if sub not in patients_without_peak else np.nan,
             "corr_pr" : corr_pr,
             "label": label
         })
@@ -173,4 +182,17 @@ df_comp = df_comp.melt(id_vars=["sub", "label", "peak_present"], value_vars=["co
                        var_name="type", value_name="value")
 order_ = ["pkg_bk", "pkg_dk", "pkg_tremor"]
 
-df_comp.to_csv(os.path.join("publication_figures", f"df_comp_beta_ml.csv"), index=False)
+
+if loc == 0: # 0 - ECoG, 1 - STN, 2 Both
+    loc_name = "ecog"
+elif loc == 1:
+    loc_name = "stn"
+elif loc == 2:
+    loc_name = "ecog_stn"
+
+name_ = f"df_comp_beta_ml_{loc_name}.csv"
+
+if INCLUDE_NIGHT is True:
+    name_ = f"df_comp_beta_ml_{loc_name}_incl_night.csv"
+
+df_comp.to_csv(os.path.join("publication_figures", name_), index=False)

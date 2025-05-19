@@ -40,6 +40,39 @@ ind_peaks_short = {
     "rcs20r" : 17,
 }
 
+ind_peaks_long = {
+    "rcs02l" : 20,              # STN
+    "rcs02r" : 18,              # STN
+    "rcs03l" : 13.5,            # STN
+    "rcs05l" : 26,              # STN
+    "rcs05r" : 26,              # STN
+    "rcs06l" : 28,              # STN
+    "rcs06r" : 18,              # STN
+    "rcs07l" : 13,              # STN
+    "rcs07r" : 8,               # STN
+    "rcs08l" : 25,  # none      # STN
+    "rcs08r" : 27,              # STN
+    "rcs09l" : 24,              # GP
+    "rcs09r" : 23,              # GP
+    "rcs10l" : 27, # none       # GP
+    "rcs10r" : 29,              # GP
+    "rcs11l" : 27,              # STN
+    "rcs11r" : 25,              # STN
+    "rcs12l" : 28,              # STN
+    "rcs12r" : 28, # none       # STN
+    "rcs14l" : 25,              # STN
+    "rcs15l" : 22,              # STN
+    "rcs15r" : 18,              # STN
+    "rcs17l" : 27,              # STN
+    "rcs17r" : 29,              # STN
+    "rcs18l" : 23, # none       # STN
+    "rcs18r" : 23,              # STN
+    "rcs19l" : 10,              # GP
+    "rcs19r" : 22,              # GP
+    "rcs20l" : 17,              # STN
+    "rcs20r" : 17,              # STN
+}
+
 
 PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper'
 PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per"
@@ -101,7 +134,7 @@ for label in ["pkg_bk", "pkg_tremor", "pkg_dk"]:
                 df_sub_ = df_sub_[df_sub_["pkg_tremor_class"] == False]
                 pr__ = pr_[df_sub["pkg_tremor_class"] == False]
                 true__ = true_[df_sub["pkg_tremor_class"] == False]
-            ind_band = df_sub_[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(ind_peaks_short[sub]-2.5), int(ind_peaks_short[sub]+2.5))]].apply(lambda x: 10**x).mean(axis=1).values
+            ind_band = df_sub_[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(ind_peaks_long[sub]-2.5), int(ind_peaks_long[sub]+2.5))]].apply(lambda x: 10**x).mean(axis=1).values
             power_sum = df_sub_[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
 
             #ind_band = stats.zscore(ind_band)

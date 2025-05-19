@@ -156,10 +156,11 @@ if __name__ == "__main__":
     duration = 32
     label_name = "pkg_bk"
 
-    if label_name == "pkg_bk":
-        CLASS = False
-    else:
-        CLASS = True
+    # if label_name == "pkg_bk":
+    #     CLASS = False
+    # else:
+    #     CLASS = True
+    CLASS = False
 
     compute_duration(duration)
 
