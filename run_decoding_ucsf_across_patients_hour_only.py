@@ -30,7 +30,7 @@ MODEL_NAME = "CB" # "CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"
 
 if __name__ == "__main__":
     PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
     run_idx = int(sys.argv[1])
 
     #run_idx = 0
@@ -51,6 +51,7 @@ if __name__ == "__main__":
     df_all_ = df_all_.drop(columns=df_all_.columns[df_all_.isnull().all()])
     #df_all_["pkg_dt"] = pd.to_datetime(df_all_["pkg_dt"])
     df_all_["pkg_dt"] = pd.to_datetime(df_all_["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+    df_all_ = df_all_[(df_all_["pkg_dt"].dt.hour >= 8) & (df_all_["pkg_dt"].dt.hour <= 20)]
 
     d_out = {}
     #for CLASS in [True, False]:

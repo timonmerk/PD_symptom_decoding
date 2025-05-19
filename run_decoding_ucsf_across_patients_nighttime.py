@@ -32,7 +32,7 @@ MODEL_NAME = "CB" # "CB", "LM", "XGB", "PCA_LM", "CEBRA", "RF"
 if __name__ == "__main__":
 
     PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
     run_idx = int(sys.argv[1])
 
     #run_idx = 0

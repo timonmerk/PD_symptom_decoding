@@ -25,7 +25,7 @@ if __name__ == "__main__":
     PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
     
     PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+    PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
     run_idx = int(sys.argv[1])
     #run_idx = 0
 
@@ -59,10 +59,11 @@ if __name__ == "__main__":
     #     )
     # ):
     #     pass
-    if label_name == "pkg_bk":
-        CLASSIFICATION = False
-    else:
-        CLASSIFICATION = True
+    # if label_name == "pkg_bk":
+    #     CLASSIFICATION = False
+    # else:
+    #     CLASSIFICATION = True
+    CLASSIFICATION = False
 
     df_all = df_orig.copy() #[[c for c in df_orig.columns if "pkg_" in c or c == "sub"]].copy()
 
@@ -72,6 +73,7 @@ if __name__ == "__main__":
 
     df_all = df_all.drop(columns=df_all.columns[df_all.isnull().all()])
     df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+    df_all = df_all[(df_all["pkg_dt"].dt.hour >= 8) & (df_all["pkg_dt"].dt.hour <= 20)]
 
     # get na values in label_name, and remove them from the dataframe
     mask = ~df_all[label_name].isnull()

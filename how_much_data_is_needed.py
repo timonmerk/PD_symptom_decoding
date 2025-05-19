@@ -16,12 +16,13 @@ PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-Universitäts
 PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
 
 PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
 
 df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
 df_all = df_all[df_all["condition"] == "stim_off"]
 df_all = df_all.drop(columns=["condition"])
 df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+df_all = df_all[(df_all["pkg_dt"].dt.hour >= 8) & (df_all["pkg_dt"].dt.hour <= 20)]
 
 # df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_normed.csv"), index_col=0)
 # df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"])
@@ -140,26 +141,26 @@ def compute_duration(dur):
 
 if __name__ == "__main__":
 
-    label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]
+    label_names = ["pkg_bk", "pkg_dk", "pkg_tremor"]  # "pkg_bk",
     durations = [4, 8, 16, 32, 64, 128, 256, 512, 1024, 2048, 4096, 8192, 16384]
 
     run_idx = int(sys.argv[1])
     #run_idx = 0
 
-    # out of len(label_names) * len(durations) runs, run only the run_idx-th run
-    # idx_ = int(run_idx)
-    # label_idx = idx_ % len(label_names)
-    # duration_idx = idx_ // len(label_names)
-    # label_name = label_names[label_idx]
+    #out of len(label_names) * len(durations) runs, run only the run_idx-th run
+    idx_ = int(run_idx)
+    label_idx = idx_ % len(label_names)
+    duration_idx = idx_ // len(label_names)
+    label_name = label_names[label_idx]
     duration = durations[run_idx]
 
-    duration = 32
-    label_name = "pkg_bk"
+    # duration = 32
+    # label_name = "pkg_bk"
 
     # if label_name == "pkg_bk":
     #     CLASS = False
     # else:
-    #     CLASS = True
+    # #     CLASS = True
     CLASS = False
 
     compute_duration(duration)

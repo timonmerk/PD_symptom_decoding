@@ -14,12 +14,13 @@ PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-Universitäts
 PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per"
 
 PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
-PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
 
 df_all = pd.read_csv(os.path.join(PATH_READ, "all_merged_preprocessed_with_condition_pkgnormed.csv"), index_col=0)
 df_all = df_all[df_all["condition"] == "stim_off"]
 df_all = df_all.drop(columns=["condition"])
 df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+df_all = df_all[(df_all["pkg_dt"].dt.hour >= 8) & (df_all["pkg_dt"].dt.hour <= 20)]
 
 EXCLUDE_ZERO_UPDRS_DYK = False
 subs_no_dyk = ["rcs10", "rcs14", "rcs15", "rcs19"]
@@ -37,6 +38,7 @@ def get_per(CLASSIFICATION, label_name):
     df_all_orig = df_all_orig[df_all_orig["condition"] == "stim_off"]
     df_all_orig = df_all_orig.drop(columns=["condition"])
     df_all_orig["pkg_dt"] = pd.to_datetime(df_all_orig["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+    df_all_orig = df_all_orig[(df_all_orig["pkg_dt"].dt.hour >= 8) & (df_all_orig["pkg_dt"].dt.hour <= 20)]
 
     subs = df_all_orig["sub"].unique()
 

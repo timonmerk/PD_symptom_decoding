@@ -18,7 +18,7 @@ if __name__ == "__main__":
     PATH_PER = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per'
 
     PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features"
-    PATH_PER = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per"
+    PATH_PER = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
     PLT_PDF = False
 
     run_idx = int(sys.argv[1])
@@ -33,10 +33,11 @@ if __name__ == "__main__":
     norm_windows = [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]
     label_name = label_names[run_idx // len(norm_windows)]
     norm_window = norm_windows[run_idx % len(norm_windows)]
-    if label_name == "pkg_bk":
-        CLASSIFICATION = False
-    else:
-        CLASSIFICATION = True
+    # if label_name == "pkg_bk":
+    #     CLASSIFICATION = False
+    # else:
+    #     CLASSIFICATION = True
+    CLASSIFICATION = False
 
     #for label_name in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
     #for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
@@ -62,6 +63,9 @@ if __name__ == "__main__":
 
     df_all = df_all.drop(columns=df_all.columns[df_all.isnull().all()])
     df_all["pkg_dt"] = pd.to_datetime(df_all["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+    # limit to 8 to 20
+    df_all = df_all[(df_all["pkg_dt"].dt.hour >= 8) & (df_all["pkg_dt"].dt.hour <= 20)]
+
     mask = ~df_all[label_name].isnull()
     df_all = df_all[mask]
     

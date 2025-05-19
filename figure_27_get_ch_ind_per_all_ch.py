@@ -71,7 +71,7 @@ def run_channel(sub, ch, ch_idx):
 
 if __name__ == "__main__":
 
-    RUN_DECODING = False
+    RUN_DECODING = True
     if RUN_DECODING:
         RUN_ON_CLUSTER = True
         if RUN_ON_CLUSTER is False:
@@ -80,7 +80,7 @@ if __name__ == "__main__":
             ch_used = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/ch_used_per_sub.csv"
             PATH_OUT = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
         else:
-            PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/ind_ch"
+            PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime/ind_ch"
             PATH_ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/all_merged_with_condition.csv"
             ch_used = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/ch_used_per_sub.csv"
         # num runs = len(sub) * 4
@@ -89,6 +89,7 @@ if __name__ == "__main__":
         df = df[df["condition"] == "stim_off"]
         df = df.drop(columns=["condition"])
         df["pkg_dt"] = pd.to_datetime(df["pkg_dt"], utc=True).dt.tz_convert("US/Pacific")
+        df = df[(df["pkg_dt"].dt.hour >= 8) & (df["pkg_dt"].dt.hour <= 20)]
         df_ch_used = pd.read_csv(ch_used, index_col=0)
 
         # subs = df_ch_used["sub"].unique()
@@ -135,7 +136,7 @@ if __name__ == "__main__":
         new_df = pd.concat(l_, axis=0).reset_index(drop=True)
         new_df.to_csv(os.path.join(PATH_PER, "df_per_ind_all.csv"))
         
-    MERGE_WITH_COORDS = True
+    MERGE_WITH_COORDS = False
     if MERGE_WITH_COORDS:
         PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
         PATH_PER = r'/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/ind_ch'
