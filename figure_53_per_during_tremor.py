@@ -63,7 +63,7 @@ if PLT_:
     pdf_pages = PdfPages(os.path.join(PATH_FIGURES, f"predictions_beta_ml.pdf"))
 
 df_comp = []
-for label in ["pkg_dk", "pkg_bk", "pkg_tremor"]:
+for label in ["pkg_bk", "pkg_tremor", "pkg_dk"]:
 
     df_features = df_features_orig.copy()
     mask = ~df_features[label].isnull()
@@ -95,23 +95,23 @@ for label in ["pkg_dk", "pkg_bk", "pkg_tremor"]:
             df_sub_ = df_sub.copy()
             if DURING_TREMOR:
                 df_sub_ = df_sub_[df_sub_["pkg_tremor_class"] == True]
-                pr__ = stats.zscore(pr_[df_sub["pkg_tremor_class"] == True])
-                true__ = stats.zscore(true_[df_sub["pkg_tremor_class"] == True])
+                pr__ = pr_[df_sub["pkg_tremor_class"] == True]
+                true__ = true_[df_sub["pkg_tremor_class"] == True]
             else:
                 df_sub_ = df_sub_[df_sub_["pkg_tremor_class"] == False]
-                pr__ = stats.zscore(pr_[df_sub["pkg_tremor_class"] == False])
-                true__ = stats.zscore(true_[df_sub["pkg_tremor_class"] == False])
+                pr__ = pr_[df_sub["pkg_tremor_class"] == False]
+                true__ = true_[df_sub["pkg_tremor_class"] == False]
             ind_band = df_sub_[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(ind_peaks_short[sub]-2.5), int(ind_peaks_short[sub]+2.5))]].apply(lambda x: 10**x).mean(axis=1).values
             power_sum = df_sub_[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
 
-            ind_band = stats.zscore(ind_band)
+            #ind_band = stats.zscore(ind_band)
 
             if CORR_SPEARMANS is False:
                 corr_ind = np.corrcoef(ind_band / power_sum, true__)[0, 1]
                 corr_pr = np.corrcoef(pr__, true__)[0, 1]
             else:
-                corr_pr = stats.spearmanr(pr_, true__).correlation
                 corr_ind = stats.spearmanr(ind_band  / power_sum, true__).correlation
+                corr_pr = stats.spearmanr(pr_, true__).correlation
 
             return corr_ind, corr_pr
 
@@ -140,6 +140,13 @@ df_comp = pd.DataFrame(df_comp)
 # create single column "per", and another column indicating if it's either corr_ind or corr_pr
 df_comp = df_comp.melt(id_vars=["sub", "label", "during_tremor"], value_vars=["corr_ind", "corr_pr"], var_name="type", value_name="value")
 order_ = ["pkg_bk", "pkg_tremor", "pkg_dk"]
+
+from py_neuromodulation import nm_stats
+nm_stats.permutationTest_relative(
+    df_comp.query("label == 'pkg_bk' and during_tremor == False")["corr_pr"].values,
+    df_comp.query("label == 'pkg_bk' and during_tremor == True")["corr_pr"].values,
+    False, None, 5000
+)  # <10^-5
 
 
 plt.figure(figsize=(5, 5))

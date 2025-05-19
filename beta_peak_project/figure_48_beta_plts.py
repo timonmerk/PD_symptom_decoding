@@ -30,32 +30,32 @@ ind_peaks_long = {
     "rcs02l" : 20,
     "rcs02r" : 18,
     "rcs03l" : 13.5,
-    "rcs05l" : 25,
-    "rcs05r" : 25,
-    "rcs06l" : 20,
+    "rcs05l" : 26,
+    "rcs05r" : 26,
+    "rcs06l" : 28,
     "rcs06r" : 18,
-    "rcs07l" : 20,
+    "rcs07l" : 13,
     "rcs07r" : 20,
-    "rcs08l" : 20,
-    "rcs08r" : 20,
-    "rcs09l" : 23,
+    "rcs08l" : 25,  # none
+    "rcs08r" : 27,
+    "rcs09l" : 24,
     "rcs09r" : 23,
-    "rcs10l" : 27,
-    "rcs10r" : 30,
-    "rcs11l" : 25,
-    "rcs11r" : 17,
-    "rcs12l" : 27,
-    "rcs12r" : 20,
+    "rcs10l" : 27, # none
+    "rcs10r" : 29,
+    "rcs11l" : 27,
+    "rcs11r" : 25,
+    "rcs12l" : 28,
+    "rcs12r" : 28, # none
     "rcs14l" : 25,
-    "rcs15l" : 18,
+    "rcs15l" : 22,
     "rcs15r" : 18,
-    "rcs17l" : 25,
-    "rcs17r" : 27,
-    "rcs18l" : 23,
+    "rcs17l" : 27,
+    "rcs17r" : 29,
+    "rcs18l" : 23, # none
     "rcs18r" : 23,
-    "rcs19l" : 22,
-    "rcs19r" : 25,
-    "rcs20l" : 18,
+    "rcs19l" : 21,
+    "rcs19r" : 22,
+    "rcs20l" : 17,
     "rcs20r" : 17,
 }
 
@@ -68,7 +68,7 @@ ind_peaks_short = {
     "rcs06l" : 30,
     "rcs06r" : 18,
     "rcs07l" : 27,
-    "rcs07r" : 20, # None
+    "rcs07r" : 20, # None --> peak was visible in mean...
     "rcs08l" : 15,
     "rcs08r" : 25,
     "rcs09l" : 22,
@@ -92,6 +92,8 @@ ind_peaks_short = {
     "rcs20r" : 17,
 }
 
+patients_no_peak = ["rcs05r", "rcs12r", "rcs18l", "rcs20l"]
+
 df_per_ml = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
 df_per_ml = df_per_ml.drop("Unnamed: 0", axis=1)
 df_per_ml = pd.read_csv(os.path.join(PATH_PER, "df_n.csv"))
@@ -108,13 +110,17 @@ l_per = []
 for sub in ind_peaks_short.keys():
     power_sum = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
     
-    ind_beta = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{ind_peaks_short[sub]}_mean"].apply(lambda x: 10**x).values
-    ind_beta_long = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{int(ind_peaks_long[sub])}_mean"].apply(lambda x: 10**x).values
+    if sub not in patients_no_peak:
+        ind_beta = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{ind_peaks_short[sub]}_mean"].apply(lambda x: 10**x).values
+        ind_beta_long = df_all[df_all["sub"] == sub][f"ch_subcortex_welch_psd_{int(ind_peaks_long[sub])}_mean"].apply(lambda x: 10**x).values
     low_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_low beta_mean_mean"].apply(lambda x: 10**x).values
     high_beta = df_all[df_all["sub"] == sub]["ch_subcortex_fft_high beta_mean_mean"].apply(lambda x: 10**x).values
     all_beta = df_all[df_all["sub"] == sub][[f"ch_subcortex_welch_psd_{i}_mean" for i in range(8, 31)]].apply(
         lambda x: 10**x
     ).mean(axis=1).values
+    if sub in patients_no_peak:
+        ind_beta = all_beta.copy()
+        ind_beta_long = all_beta.copy()
     pkg_bk = df_all[df_all["sub"] == sub]["pkg_bk"].values
 
     msk_ = ~np.isnan(pkg_bk)

@@ -5,6 +5,8 @@ import matplotlib as mpl
 import pickle
 import os
 import seaborn as sns
+from sklearn import metrics
+
 
 
 def read_per(d_out, CLASSIFICATION, pkg_label):
@@ -16,11 +18,19 @@ def read_per(d_out, CLASSIFICATION, pkg_label):
         per_ = "corr_coeff"
     #for pkg_label in d_out[CLASSIFICATION].keys():
     for sub in d_out[CLASSIFICATION][pkg_label]["ecog_stn"].keys():
+        hours_ = pd.to_datetime(d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub]["time"]).hour
+        idx_sel = np.where(np.logical_and(hours_ >8, hours_ < 20))[0]
+        pr = d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub]["pr"][idx_sel]
+        true_ = d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub]["y_"][idx_sel]
+        if CLASSIFICATION is True:
+            per = metrics.balanced_accuracy_score(true_, pr)
+        else:
+            per = np.corrcoef(pr, true_)[0, 1]
         l.append({
             "sub": sub,
             "pkg_label": pkg_label,
             "CLASSIFICATION": CLASSIFICATION,
-            "per": d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub][per_]
+            "per": per, #d_out[CLASSIFICATION][pkg_label]["ecog_stn"][sub][per_]
         })
     df_loso = pd.DataFrame(l)
     return df_loso

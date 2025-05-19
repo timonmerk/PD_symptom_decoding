@@ -40,7 +40,42 @@ ind_peaks_short = {
     "rcs20r" : 17,
 }
 
-patients_without_peak = ["rcs05r", "rcs07r", "rcs12l", "rcs18l", "rcs20l"]
+ind_peaks_long = {
+    "rcs02l" : 20,
+    "rcs02r" : 18,
+    "rcs03l" : 13.5,
+    "rcs05l" : 26,
+    "rcs05r" : 26,
+    "rcs06l" : 28,
+    "rcs06r" : 18,
+    "rcs07l" : 13,
+    "rcs07r" : 8, # 
+    "rcs08l" : 25,  # none
+    "rcs08r" : 27,
+    "rcs09l" : 24,
+    "rcs09r" : 23,
+    "rcs10l" : 27, # none
+    "rcs10r" : 29,
+    "rcs11l" : 27,
+    "rcs11r" : 25,
+    "rcs12l" : 28,
+    "rcs12r" : 28, # none
+    "rcs14l" : 25,
+    "rcs15l" : 22,
+    "rcs15r" : 18,
+    "rcs17l" : 27,
+    "rcs17r" : 29,
+    "rcs18l" : 23, # none
+    "rcs18r" : 23,
+    "rcs19l" : 10,
+    "rcs19r" : 22,
+    "rcs20l" : 17,
+    "rcs20r" : 17,
+}
+
+
+#patients_without_peak = ["rcs05r", "rcs07r", "rcs12l", "rcs18l", "rcs20l"]
+patients_without_peak = [ "rcs08l", "rcs10l", "rcs12r", "rcs18l"]
 
 PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper'
 PATH_PER = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per"
@@ -72,7 +107,7 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
     df_features = df_features.dropna(axis=1)
 
     file = f"LOHO_main_{label}_CLASS_False_loc_ecog_stn_nonorm_withpsd.pkl"
-    #file = f"LOHO_main_{label}_CLASS_False_loc_ecog_nonorm_withpsd.pkl"
+    #file = f"LOHO_main_{label}_CLASS_False_loc_ecog_nonorm_withpsd.pkl"  # select here for ECoG only
     with open(f"{PATH_PER}/{file}", "rb") as f:
         d_out = pickle.load(f)
 
@@ -92,8 +127,10 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
 
         power_sum = df_sub[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
 
-        ind_band = df_sub[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(ind_peaks_short[sub]-2.5), int(ind_peaks_short[sub]+2.5))]].apply(lambda x: 10**x).mean(axis=1).values
-
+        if sub not in patients_without_peak:
+            ind_band = df_sub[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(ind_peaks_long[sub]-2.5), int(ind_peaks_long[sub]+2.5))]].apply(lambda x: 10**x).mean(axis=1).values
+        else:
+            ind_band = df_sub[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(int(19-2.5), int(19+2.5))]].apply(lambda x: 10**x).mean(axis=1).values
         #ind_band = stats.zscore(ind_band)
         #pr_ = stats.zscore(pr_)
         #true_ = stats.zscore(true_)
@@ -107,7 +144,7 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
 
         df_comp.append({
             "sub" : sub,
-            "corr_ind" : corr_ind,
+            "corr_ind" : corr_ind if sub not in patients_without_peak else np.nan,
             "corr_pr" : corr_pr,
             "label": label
         })
@@ -128,7 +165,7 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
 
 df_comp = pd.DataFrame(df_comp)
 # set peak_present based on patients_without_peak
-df_comp["peak_present"] = df_comp["sub"].apply(lambda x: 1 if x in patients_without_peak else 0)
+df_comp["peak_present"] = df_comp["sub"].apply(lambda x: 0 if x in patients_without_peak else 1)
 
 df_comp["corr_ind_abs"] = np.abs(df_comp["corr_ind"])
 
@@ -136,42 +173,4 @@ df_comp = df_comp.melt(id_vars=["sub", "label", "peak_present"], value_vars=["co
                        var_name="type", value_name="value")
 order_ = ["pkg_bk", "pkg_dk", "pkg_tremor"]
 
-plt.figure(figsize=(3, 5))
-df_plt_ = df_comp.copy()
-hue_order = ["corr_ind", "corr_ind_abs", "corr_pr"]
-order = ["pkg_bk", "pkg_tremor", "pkg_dk"]
-sns.boxplot(data=df_plt_.query("type != 'corr_ind_abs'"), x="label", y="value",
-            hue="type", palette="viridis", boxprops=dict(alpha=.3), color=None,
-            showfliers=False, showmeans=True, order=order_, hue_order=hue_order)
-sns.swarmplot(data=df_plt_.query("type != 'corr_ind_abs'"), x="label", y="value",
-              hue="type", dodge=True, color="black", alpha=.5,
-              order=order_, palette="viridis", legend=False, hue_order=hue_order)
-if CORR_SPEARMANS:
-    plt.ylabel("Spearman's correlation")
-else:
-    plt.ylabel("Pearson's correlation")
-plt.tight_layout()
-#plt.savefig(os.path.join(PATH_FIGURES, "predictions_beta_ml_fig2_pearson_1205.pdf"))
-plt.show(block=True)
-
-np.sum((df_comp.query("label == 'pkg_bk' and type == 'corr_pr'")["value"].values - np.abs(df_comp.query("label == 'pkg_bk' and type == 'corr_ind'")["value"].values)) > 0)
-np.sum((df_comp.query("label == 'pkg_dk' and type == 'corr_pr'")["value"].values - np.abs(df_comp.query("label == 'pkg_dk' and type == 'corr_ind'")["value"].values)) > 0)
-np.sum((df_comp.query("label == 'pkg_tremor' and type == 'corr_pr'")["value"].values - np.abs(df_comp.query("label == 'pkg_tremor' and type == 'corr_ind'")["value"].values)) > 0)
-
-from py_neuromodulation import nm_stats
-nm_stats.permutationTest_relative(
-    df_plt_.query("label == 'pkg_bk' and type == 'corr_pr'")["value"].values,
-    df_plt_.query("label == 'pkg_bk' and type == 'corr_ind'")["value"].values,
-    False, None, 5000
-)  # 0.0006, abs 0.0004
-nm_stats.permutationTest_relative(
-    df_plt_.query("label == 'pkg_dk' and type == 'corr_pr'")["value"].values,
-    df_plt_.query("label == 'pkg_dk' and type == 'corr_ind'")["value"].values * -1,
-    False, None, 5000
-)  # 0, abs 0.0236
-nm_stats.permutationTest_relative(
-    df_plt_.query("label == 'pkg_tremor' and type == 'corr_pr'")["value"].values,
-    df_plt_.query("label == 'pkg_tremor' and type == 'corr_ind_abs'")["value"].values,
-    False, None, 5000
-)  # 0.0044, abs 0.6466
-
+df_comp.to_csv(os.path.join("publication_figures", f"df_comp_beta_ml.csv"), index=False)

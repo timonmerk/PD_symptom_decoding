@@ -12,7 +12,7 @@ df_s = pd.read_csv("ClinicalScoresTable.csv")
 with open("ucsf_config.yaml", "r") as f:
     config = yaml.load(f, Loader=yaml.FullLoader)
     PATH_FEATURES = os.path.join(config["path_base"], config["features"])
-    PATH_FIGURES = os.path.join(config["path_base"], config["figures"])
+    PATH_FIGURES = '/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/figures_ucsf/figures_paper/figures_final'
 
 PATH_PKG = os.path.join(config["path_base"], "pkg_data")
 
@@ -20,7 +20,7 @@ PATH_OUT = os.path.join(PATH_FEATURES, "merged")
 subs = np.sort([f[:6] for f in os.listdir(PATH_OUT) if "rcs" in f])
 
 # idea here: check only if tremor is consistent
-LIMIT_TO_DAYTIME = False
+LIMIT_TO_DAYTIME = True  # was False
 
 d_out = []
 for sub in subs:
@@ -28,7 +28,7 @@ for sub in subs:
     df_pkg.index = pd.to_datetime(df_pkg.pkg_dt)
     df_pkg["h"] = df_pkg.index.hour
     if LIMIT_TO_DAYTIME:
-        df_pkg = df_pkg[(df_pkg.h >= 12) & (df_pkg.h <= 18)]
+        df_pkg = df_pkg[(df_pkg.h >= 8) & (df_pkg.h <= 20)]
     if sub[-1] == "l":
         UE = "LUE"
         LE = "LLE"
@@ -87,14 +87,15 @@ for idx_plt_col, col_plt in enumerate(["UPDRS (Off)", "UPDRS (Off-On)"]):  #
         sb.regplot(data=data_plt, x=col_pkg, y=col_plt)
 
         #sb.regplot(data=df_out, x=col_pkg, y=col_plt)
-        rho, p = stats.spearmanr(data_plt[col_pkg], data_plt[col_plt])
+        #rho, p = stats.spearmanr(data_plt[col_pkg], data_plt[col_plt])
+        rho = np.corrcoef(data_plt[col_pkg], data_plt[col_plt])[0, 1]
         _, p = nm_stats.permutationTestSpearmansRho(
-            data_plt[col_pkg], data_plt[col_plt], False, None, 5000
+            data_plt[col_pkg], data_plt[col_plt], False, None, 5000, Spearman=False
         )
         plt.title(f"rho={rho:.2f}, p={p:.3f}")
 plt.suptitle("Bradykinesia PKG - UPDRS correlations")
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "pkg_bradykinesia_correlation_sum_subj.pdf"))  
+#plt.savefig(os.path.join(PATH_FIGURES, "pkg_bradykinesia_correlation_sum_subj.pdf"))  
 plt.show(block=True)
 
 plt.figure(figsize=(6.5, 3.2))
@@ -105,13 +106,14 @@ for idx_plt_col, col_plt in enumerate(["updrs_tremor"]):  # ["UE", "LE", "postur
         data_plt = df_out[idx_not_none].groupby(["sub"])[[col_plt, col_pkg]].mean().reset_index()
         sb.regplot(data=data_plt, x=col_pkg, y=col_plt, scatter_kws={'s':14*1.7})
         rho, p = stats.spearmanr(data_plt[col_pkg], data_plt[col_plt])
+        rho = np.corrcoef(data_plt[col_pkg], data_plt[col_plt])[0, 1]
         #_, p = nm_stats.permutationTestSpearmansRho(
         #    data_plt[col_pkg], data_plt[col_plt], False, None, 5000
         #)
         plt.title(f"rho={rho:.2f}, p={p:.2f}")
 plt.suptitle("Tremor PKG - UPDRS correlations")
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "pkg_tremor_correlation_mean_sub.pdf"))
+#plt.savefig(os.path.join(PATH_FIGURES, "pkg_tremor_correlation_mean_sub.pdf"))
 plt.show(block=True)
 
 plt.figure(figsize=(6.5, 3.4))
@@ -125,14 +127,15 @@ for idx_plt_col, col_plt in enumerate(["UPDRS IV", ]):
         sb.regplot(data=data_plt[idx_not_inf], x=col_pkg, y=col_plt)
 
         #sb.regplot(data=df_out, x=col_pkg, y=col_plt)
-        rho, p = stats.spearmanr(data_plt[col_pkg], data_plt[col_plt])
+        #rho, p = stats.spearmanr(data_plt[col_pkg], data_plt[col_plt])
+        rho = np.corrcoef(data_plt[col_pkg], data_plt[col_plt])[0, 1]
         _, p = nm_stats.permutationTestSpearmansRho(
             data_plt[col_pkg], data_plt[col_plt], False, None, 5000
         )
         plt.title(f"rho={rho:.2f}, p={p:.2f}")
 plt.suptitle("Dyskinesia PKG - UPDRS correlations")
 plt.tight_layout()
-plt.savefig(os.path.join(PATH_FIGURES, "pkg_dyskinesia_correlation_mean_sub.pdf"))  
+#plt.savefig(os.path.join(PATH_FIGURES, "pkg_dyskinesia_correlation_mean_sub.pdf"))  
 plt.show(block=True)
 
 

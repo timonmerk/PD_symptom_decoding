@@ -39,7 +39,7 @@ def zscore(data):
     return (data - data.mean()) / data.std()
 
 
-def permutationTestSpearmansRho(x, y, plot_distr=True, x_unit=None, p=5000):
+def permutationTestSpearmansRho(x, y, plot_distr=True, x_unit=None, p=5000, Spearman=True):
     """
     Calculate permutation test for multiple repetitions of Spearmans Rho
     https://towardsdatascience.com/how-to-assess-statistical-significance-in-your-data-with-permutation-tests-8bb925b2113d
@@ -57,7 +57,11 @@ def permutationTestSpearmansRho(x, y, plot_distr=True, x_unit=None, p=5000):
     """
 
     # compute ground truth difference
-    gT = stats.spearmanr(x, y)[0]
+    if Spearman:
+        gT = stats.spearmanr(x, y)[0]
+    else:
+        gT = np.corrcoef(x, y)[0, 1]
+    #gT = stats.spearmanr(x, y)[0]
     #
     pV = np.array((x, y))
     # Initialize permutation:
@@ -71,7 +75,11 @@ def permutationTestSpearmansRho(x, y, plot_distr=True, x_unit=None, p=5000):
         random.shuffle(args_order_2)
         # Compute permuted absolute difference of your two sampled
         # distributions and store it in pD:
-        pD.append(stats.spearmanr(pV[0, args_order], pV[1, args_order_2])[0])
+        if Spearman:
+            pD.append(stats.spearmanr(pV[0, args_order], pV[1, args_order_2])[0])
+        else:
+            pD.append(np.corrcoef(pV[0, args_order], pV[1, args_order_2])[0, 1])
+        #pD.append(stats.spearmanr(pV[0, args_order], pV[1, args_order_2])[0])
 
     # calculate p value
     if gT < 0:
