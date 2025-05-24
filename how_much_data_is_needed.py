@@ -11,10 +11,10 @@ import sys
 from sklearn.utils import shuffle
 import pickle
 
-#PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_normalized_10s_window_length/480"
 PATH_READ = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length"
 PATH_OUT = "/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
 
+# uncomment for cluster!
 PATH_READ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length"
 PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime"
 
@@ -148,11 +148,8 @@ if __name__ == "__main__":
     #run_idx = 0
 
     #out of len(label_names) * len(durations) runs, run only the run_idx-th run
-    idx_ = int(run_idx)
-    label_idx = idx_ % len(label_names)
-    duration_idx = idx_ // len(label_names)
-    label_name = label_names[label_idx]
-    duration = durations[run_idx]
+    label_name = label_names[run_idx // len(durations)]
+    duration = durations[run_idx % len(durations)]
 
     # duration = 32
     # label_name = "pkg_bk"
