@@ -39,15 +39,9 @@ if __name__ == "__main__":
     df_orig = df_orig.drop(columns=["condition"])
 
     MODEL_NAMES = ["CB", "RF", "XGB", "LM", "PCA_LM", "CEBRA"]
-    #label_names = ["pkg_dk", "pkg_tremor", "pkg_bk", ]
-    #label_name = label_names[run_idx // len(MODEL_NAMES)]
-
-    if run_idx == 6:
-        label_name = "pkg_dk"
-        MODEL_NAME = "CB"
-    else:
-        label_name = "pkg_bk"
-        MODEL_NAME = MODEL_NAMES[run_idx % len(MODEL_NAMES)]
+    label_names = ["pkg_dk", "pkg_tremor", "pkg_bk", ]
+    label_name = label_names[run_idx // len(MODEL_NAMES)]
+    MODEL_NAME = MODEL_NAMES[run_idx % len(MODEL_NAMES)]
 
     #for MODEL_NAME in ["XGB"]: #["CB", "RF",]:  # "XGB", "CEBRA", "LM", "PCA_LM",
     #   for label_name in ["pkg_dk", "pkg_tremor", "pkg_bk", ]:
