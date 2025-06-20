@@ -17,15 +17,16 @@ def read_per_out(PATH_):
     data = []
 
     if list(d_out.keys())[0].startswith("rcs"):
+        key_per = "corr_coeff"
         if "pkg_bk" in PATH_:
-            key_per = "corr_coeff"
+            #
             pkg_decode_label = "pkg_bk"
         elif "pkg_dk" in PATH_:
             pkg_decode_label = "pkg_dk"
-            key_per = "ba"
+            #key_per = "ba"
         elif "pkg_tremor" in PATH_:
             pkg_decode_label = "pkg_tremor"
-            key_per = "ba"
+            #key_per = "ba"
         for sub in d_out.keys():
             data.append({
                 "sub": sub,
@@ -38,23 +39,23 @@ def read_per_out(PATH_):
     for pkg_decode_label in d_out.keys():
         for loc in d_out[pkg_decode_label].keys():
             for sub in d_out[pkg_decode_label][loc].keys():
-                if pkg_decode_label == "pkg_bk":
-                    data.append({
-                        "sub" : sub,
-                        "pkg_decode_label": pkg_decode_label,
-                        "per": d_out[pkg_decode_label][loc][sub]["corr_coeff"],
-                        #"r2" : d_out[pkg_decode_label][loc][sub]["r2"],
-                        #"mae" : d_out[pkg_decode_label][loc][sub]["mae"],
-                        #"mse" : d_out[pkg_decode_label][loc][sub]["mse"],
-                    })
-                else:
-                    data.append({
-                        "sub": sub,
-                        "pkg_decode_label": pkg_decode_label,
-                        #"f1": d_out[pkg_decode_label][loc][sub]["f1"],
-                        "per": d_out[pkg_decode_label][loc][sub]["ba"],
+                #if pkg_decode_label == "pkg_bk":
+                data.append({
+                    "sub" : sub,
+                    "pkg_decode_label": pkg_decode_label,
+                    "per": d_out[pkg_decode_label][loc][sub]["corr_coeff"],
+                    #"r2" : d_out[pkg_decode_label][loc][sub]["r2"],
+                    #"mae" : d_out[pkg_decode_label][loc][sub]["mae"],
+                    #"mse" : d_out[pkg_decode_label][loc][sub]["mse"],
+                })
+                # else:
+                #     data.append({
+                #         "sub": sub,
+                #         "pkg_decode_label": pkg_decode_label,
+                #         #"f1": d_out[pkg_decode_label][loc][sub]["f1"],
+                #         "per": d_out[pkg_decode_label][loc][sub]["ba"],
                         
-                    })
+                #     })
 
     df = pd.DataFrame(data)
     return df
@@ -91,20 +92,21 @@ def get_dur_per_relation(label):
             d_out = pickle.load(f)
 
             l = []
-            for CLASS in d_out.keys():
-                for label_name in d_out[CLASS].keys():
-                    for loc_ in d_out[CLASS][label_name].keys():
-                        for sub_test in d_out[CLASS][label_name][loc_].keys():
-                            if label_name == "pkg_dk" or label == "pkg_tremor":
-                                per_label = "ba"
-                            else:
-                                per_label = "corr_coeff"
-                            l.append({
-                                "sub": sub_test,
-                                "pkg_label": label_name,
-                                "CLASS": CLASS,
-                                "per": d_out[CLASS][label_name][loc_][sub_test][per_label]
-                            })
+            #for CLASS in d_out.keys():
+            CLASS = False
+            for label_name in d_out[CLASS].keys():
+                for loc_ in d_out[CLASS][label_name].keys():
+                    for sub_test in d_out[CLASS][label_name][loc_].keys():
+                        #if label_name == "pkg_dk" or label == "pkg_tremor":
+                        #    per_label = "ba"
+                        #else:
+                        per_label = "corr_coeff"
+                        l.append({
+                            "sub": sub_test,
+                            "pkg_label": label_name,
+                            "CLASS": CLASS,
+                            "per": d_out[CLASS][label_name][loc_][sub_test][per_label]
+                        })
             df = pd.DataFrame(l)
             df["dur"] = int(str(f).split("_")[-2])
 
@@ -115,8 +117,8 @@ def get_dur_per_relation(label):
     df.groupby("dur")["per"].mean()
     df_[0]
     df_[1]
-    if label != "pkg_bk":
-        df["per"] = np.clip(df["per"], 0.5, 1)
+    #if label != "pkg_bk":
+    #    df["per"] = np.clip(df["per"], 0.5, 1)
 
     return df
 
@@ -152,17 +154,20 @@ def plot_per_train_time_relation(df, label, plt_txt=False, hide_ylabel=False):
         df_sub = df.query(f"sub == '{sub}'")
         # sort the dataframe by duration
         df_sub = df_sub.sort_values("dur")
-        plt.plot(durations / 60, df_sub["per"], color="gray", alpha=0.2)
+        #plt.plot(durations / 60, df_sub["per"], color="gray", alpha=0.2)
         sub_per.append(df_sub["per"].values)
     plt.xlabel("Duration [h]")
-    if label == "pkg_bk":
-        plt.ylabel("Correlation coefficient")
-    else:
-        plt.ylabel("Balanced accuracy")
+    #if label == "pkg_bk":
+    plt.ylabel("Correlation coefficient")
+    # else:
+    #     plt.ylabel("Balanced accuracy")
     if hide_ylabel:
         plt.ylabel("")
     # plot the mean accuracy for each duration
     plt.plot(durations / 60, np.array(sub_per).mean(axis=0), marker="o", linestyle="-", color="black")
+    # plot the standard deviation as shaded area
+    plt.fill_between(durations / 60, np.array(sub_per).mean(axis=0) - np.array(sub_per).std(axis=0),
+                     np.array(sub_per).mean(axis=0) + np.array(sub_per).std(axis=0), color="black", alpha=0.2)
     # write the mean accuracy on top of the line
     if plt_txt:
         for i, dur in enumerate(durations):
@@ -202,11 +207,11 @@ def plot_best_features(columns_, pkg_decode_label, cols_show=10):
 
     data = []
     if pkg_decode_label == "pkg_bk":
-        FILE_ = "LOHO_main_pkg_bk_CLASS_False_loc_ecog_stn_nonorm_withpsd.pkl"
+        FILE_ = "LOHO_main_pkg_bk_CLASS_False_loc_ecog_stn_withpsd.pkl"
     elif pkg_decode_label == "pkg_dk":
-        FILE_ = "LOHO_main_pkg_dk_CLASS_True_loc_ecog_stn_nonorm_withpsd.pkl"
+        FILE_ = "LOHO_main_pkg_dk_CLASS_True_loc_ecog_stn_withpsd.pkl"
     else:
-        FILE_ = "LOHO_main_pkg_tremor_CLASS_True_loc_ecog_stn_nonorm_withpsd.pkl"
+        FILE_ = "LOHO_main_pkg_tremor_CLASS_True_loc_ecog_stn_withpsd.pkl"
     
     with open(os.path.join(PATH_PER, FILE_), "rb") as f:
         d_out_ = pickle.load(f)
@@ -230,15 +235,17 @@ def plot_best_features(columns_, pkg_decode_label, cols_show=10):
 if __name__ == "__main__":
 
     columns_ = read_columns_and_importances()
-    df_all_features = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/abc/df_main.csv')
+
+    # replace this with the figure_47_main_figure.py resulted df_main.csv
+    df_all_features = pd.read_csv('/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/without_night/df_main.csv')
 
     plt.figure(figsize=(12, 9))
-    for idx_, label_name in enumerate(["pkg_bk", "pkg_dk", "pkg_tremor"]):
+    for idx_, label_name in enumerate(["pkg_bk", "pkg_tremor", "pkg_dk"]):
 
-        if label_name == "pkg_bk":
-            y_label = "Correlation coefficient"
-        else:
-            y_label = "Balanced accuracy"
+        #if label_name == "pkg_bk":
+        y_label = "Correlation coefficient"
+        #else:
+        #y_label = "Balanced accuracy"
     
         plt.subplot(3, 4, 4*idx_+4)
         plot_best_features(columns_, label_name)
@@ -255,15 +262,14 @@ if __name__ == "__main__":
         
         df_features = pd.concat(l_features, axis=0)
 
-        #if label_name == "pkg_bk":
+        # if label_name == "pkg_bk":
+        #     CLASS_ = False
+        # else:
+        #     CLASS_ = True
         CLASS_ = False
-        #else:
-        #    CLASS_ = True
         df_all_features_ = df_all_features.query(f"pkg_decode_label == '{label_name}' and CLASSIFICATION == {CLASS_} and loc == 'ecog_stn'")[["sub", "per", "pkg_decode_label"]].reset_index(drop=True)
         df_all_features_["feature_mod"] = "all"
         df_features_comb = pd.concat([df_features, df_all_features_], axis=0)
-
-        #df_features_comb.groupby("feature_mod")["per"].mean()
 
         plt.subplot(3, 4, 4*idx_+1)
         plot_boxplot(df_features_comb, "feature_mod", y_label,
@@ -278,16 +284,16 @@ if __name__ == "__main__":
             df = read_per_out(PATH_READ)
             df["model"] = ML_
             l_models.append(df)
-        df_models = pd.concat(l_models)
+        df_models = pd.concat(l_models).reset_index(drop=True)
 
         # now the second subplot: Normalization windows
-        # if label_name == "pkg_bk":
-        #     class_ = "False"
-        # else:
-        #     class_ = "True"
+        #if label_name == "pkg_bk":
+        class_ = "False"
+        #else:
+        #    class_ = "True"
         # l_norms = []
         # for norm_window in [0, 5, 10, 20, 30, 60, 120, 180, 300, 480, 720, 960, 1200, 1440]:
-        #     OUT_FILE = f"d_out_patient_across_{label_name}_class_{class_}_{norm_window}.pkl"
+        #     OUT_FILE = f"d_out_patient_across_{label_name}_class_{class_}_{norm_window}_False.pkl"  # last index: with HOUR
         #     PATH_READ = os.path.join(PATH_PER, OUT_FILE)
         #     if not os.path.exists(PATH_READ):
         #         continue
@@ -296,10 +302,10 @@ if __name__ == "__main__":
         #     #df = df.query("loc == 'ecog_stn'")
         #     df["norm_window"] = norm_window
         #     l_norms.append(df)
-        # df_norm = pd.concat(l_norms)
+        # df_norm = pd.concat(l_norms).reset_index(drop=True)
 
-        #plt.subplot(3, 4, 4*idx_+1)
-        #plot_boxplot(df_norm, "norm_window", y_label)
+        # plt.subplot(3, 4, 4*idx_+3)
+        # plot_boxplot(df_norm, "norm_window", y_label)
         
         plt.subplot(3, 4, 4*idx_+2)
         plot_boxplot(df_models, "model", y_label,

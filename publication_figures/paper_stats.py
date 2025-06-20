@@ -43,7 +43,7 @@ ind_peaks_long = {
 }
 
 PATH_PER = "publication_figures"
-LOAD_ECOG = True
+LOAD_ECOG = False
 
 if LOAD_ECOG is False:
     df_comp_withnight = pd.read_csv(os.path.join(PATH_PER, "df_comp_beta_ml_incl_night.csv"))
@@ -55,6 +55,21 @@ if LOAD_ECOG is False:
     df_comp = pd.read_csv(os.path.join(PATH_PER, "df_comp_beta_ml.csv"))
 else:
     df_comp = pd.read_csv(os.path.join(PATH_PER, "df_comp_beta_ml_ecog.csv"))
+
+subs_smaller = df_comp.query("label == 'pkg_bk' and type == 'corr_ind' and value<0")["sub"]
+vals_ind = df_comp.query("label == 'pkg_bk' and type == 'corr_ind' and value<0")["value"].values
+np.mean(vals_ind)  # -0.11
+np.std(vals_ind)   # 0.11
+vals_pr = df_comp.query("label == 'pkg_bk' and type == 'corr_pr' and sub in @subs_smaller")["value"].values
+
+vals_beta_tremor = df_comp.query("label == 'pkg_tremor' and type == 'corr_ind'")["value"].values
+vals_beta_tremor_nonan = vals_beta_tremor[~np.isnan(vals_beta_tremor)]
+
+nm_stats.permutationTest(
+    vals_beta_tremor_nonan,
+    np.zeros(vals_beta_tremor_nonan.shape[0]),
+    False, None, 5000
+)
 
 nm_stats.permutationTest_relative(
     df_comp.query("label == 'pkg_bk' and type == 'corr_pr' and peak_present == 1")["value"].values,
@@ -160,6 +175,10 @@ order_ = ["pkg_bk", "pkg_tremor", "pkg_dk"]
 df_plt_ = df_comp.copy()
 
 df_stat = df_plt_[~df_plt_["sub"].isin(patients_without_peak)]
+df_plt_["loc"] = "STN"
+df_plt_.loc[df_plt_["sub"].isin(subs_GP), "loc"] = "GP"
+df_plt_.query("type == 'corr_pr' and peak_present == 0").groupby(["loc", "label"])["value"].mean()
+df_plt_.query("type == 'corr_pr' and peak_present == 0").groupby(["loc", "label"])["value"].std()
 
 # PKG bk
 
