@@ -90,10 +90,14 @@ df_features["h"] = df_features["pkg_dt"].dt.hour
 df_features_orig = df_features.copy()
 
 INCLUDE_NIGHT = False
-loc = 1 # 0 - ECoG, 1 - STN, 2 Both
+WRITE_OUT_PR_DATAFRAME = True
+loc = 2 # 0 - ECoG, 1 - STN, 2 Both
 
 if INCLUDE_NIGHT is False:
     df_features_orig = df_features_orig.query("h >= 8 and h <= 20")
+
+if WRITE_OUT_PR_DATAFRAME:
+    l_df_out = []
 
 PLT_ = False
 CORR_SPEARMANS = False
@@ -134,6 +138,16 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
         time_idx = time_band.index
         df_sub = df_sub.loc[time_idx]
 
+        if WRITE_OUT_PR_DATAFRAME:
+            df_out = pd.DataFrame({
+                "pkg_dt": time_band,
+                "pr": pr_,
+                "true": true_,
+                "sub": sub,
+                "label": label
+            })
+            l_df_out.append(df_out)
+
         power_sum = df_sub[[f"ch_subcortex_welch_psd_{int(i)}_mean" for i in range(1, 115)]].apply(lambda x: 10**x).sum(axis=1).values
 
         if sub not in patients_without_peak:
@@ -171,6 +185,10 @@ for label in ["pkg_bk", "pkg_dk", "pkg_tremor"]:
             plt.close()
     if PLT_:
         pdf_pages.close()
+
+if WRITE_OUT_PR_DATAFRAME:
+    df_out = pd.concat(l_df_out, ignore_index=True)
+    df_out.to_csv(os.path.join("publication_figures", "df_out_predictions_true.csv"), index=False)
 
 df_comp = pd.DataFrame(df_comp)
 # set peak_present based on patients_without_peak

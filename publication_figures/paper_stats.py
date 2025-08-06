@@ -42,6 +42,8 @@ ind_peaks_long = {
     "rcs20r" : 17,              # STN
 }
 
+subs_GP = ["rcs09l", "rcs09r", "rcs10l", "rcs10r", "rcs14r", "rcs19l", "rcs19r"]
+
 PATH_PER = "publication_figures"
 LOAD_ECOG = False
 
@@ -55,6 +57,28 @@ if LOAD_ECOG is False:
     df_comp = pd.read_csv(os.path.join(PATH_PER, "df_comp_beta_ml.csv"))
 else:
     df_comp = pd.read_csv(os.path.join(PATH_PER, "df_comp_beta_ml_ecog.csv"))
+
+df_comp["loc"] = "STN"
+df_comp.loc[df_comp["sub"].isin(subs_GP), "loc"] = "GP"
+
+nm_stats.permutationTest(
+    df_comp.query("type == 'corr_pr' and label == 'pkg_bk' and loc == 'STN'")["value"].values,
+    df_comp.query("type == 'corr_pr' and label == 'pkg_bk' and loc == 'GP'")["value"].values,
+    False, None, 5000
+)
+
+nm_stats.permutationTest(
+    df_comp.query("type == 'corr_pr' and label == 'pkg_dk' and loc == 'STN'")["value"].values,
+    df_comp.query("type == 'corr_pr' and label == 'pkg_dk' and loc == 'GP'")["value"].values,
+    False, None, 5000
+)
+
+nm_stats.permutationTest(
+    df_comp.query("type == 'corr_pr' and label == 'pkg_tremor' and loc == 'STN'")["value"].values,
+    df_comp.query("type == 'corr_pr' and label == 'pkg_tremor' and loc == 'GP'")["value"].values,
+    False, None, 5000
+)
+
 
 subs_smaller = df_comp.query("label == 'pkg_bk' and type == 'corr_ind' and value<0")["sub"]
 vals_ind = df_comp.query("label == 'pkg_bk' and type == 'corr_ind' and value<0")["value"].values
@@ -147,12 +171,6 @@ nm_stats.permutationTest_relative(
 )
 
 26/30
-
-
-
-subs_GP = ["rcs09l", "rcs09r", "rcs10l", "rcs10r", "rcs14r", "rcs19l", "rcs19r"]
-
-
 
 df_peaks = pd.DataFrame.from_dict(ind_peaks_long, orient="index", columns=["peak"])
 df_peaks["sub"] = df_peaks.index

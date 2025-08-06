@@ -54,14 +54,10 @@ df_features["h"] = df_features["pkg_dt"].dt.hour
 df_features_orig = df_features.copy()
 
 df_features_orig = df_features_orig.query("h >= 8 and h <= 20")
-
-PLT_ = False
 CORR_SPEARMANS = False
-if PLT_:
-    pdf_pages = PdfPages(os.path.join(PATH_FIGURES, f"predictions_beta_ml.pdf"))
 
 label_class = "pkg_tremor_class"
-label_class = "pkg_dk_class"
+#label_class = "pkg_dk_class"
 #label_class = "pkg_tremor_class"
 df_comp = []
 for label in ["pkg_bk", "pkg_tremor", "pkg_dk"]:
@@ -137,26 +133,51 @@ for label in ["pkg_bk", "pkg_tremor", "pkg_dk"]:
             "during_label_class": True
         })
 
-    if PLT_:
-        pdf_pages.close()
 
 df_comp = pd.DataFrame(df_comp)
 # create single column "per", and another column indicating if it's either corr_ind or corr_pr
 df_comp = df_comp.melt(id_vars=["sub", "label", "during_label_class"], value_vars=["corr_ind", "corr_pr"], var_name="type", value_name="value")
 order_ = ["pkg_bk", "pkg_tremor", "pkg_dk"]
 
+plt.figure(figsize=(3, 5))
+df_plt_ = df_comp.copy()
+sns.boxplot(data=df_plt_.query("type == 'corr_pr' and label != 'pkg_dk'"), x="label", y="value", hue="during_label_class", showmeans=True, showfliers=False,
+            palette="viridis", boxprops=dict(alpha=.3))
+sns.swarmplot(data=df_plt_.query("type == 'corr_pr' and label != 'pkg_dk'"), x="label", y="value", hue="during_label_class", dodge=True, color="black", alpha=.5,
+              order=order_, palette="viridis", legend=False)
+plt.ylabel("Pearson's correlation coefficient [r]")
+plt.title("ML during dk")
+plt.tight_layout()
+plt.ylim(-1, 1)
+plt.savefig(os.path.join(PATH_FIGURES, "figure_53_per_during_dk.pdf"))
+plt.show()
+
+
+plt.figure(figsize=(3, 5))
+df_plt_ = df_comp.copy()
+sns.boxplot(data=df_plt_.query("type == 'corr_pr' and label != 'pkg_tremor'"), x="label", y="value", hue="during_label_class", showmeans=True, showfliers=False,
+            palette="viridis", boxprops=dict(alpha=.3))
+sns.swarmplot(data=df_plt_.query("type == 'corr_pr' and label != 'pkg_tremor'"), x="label", y="value", hue="during_label_class", dodge=True, color="black", alpha=.5,
+              order=order_, palette="viridis", legend=False)
+plt.ylabel("Pearson's correlation coefficient [r]")
+plt.title("ML during tremor")
+plt.ylim(-1, 1)
+plt.tight_layout()
+plt.savefig(os.path.join(PATH_FIGURES, "figure_53_per_during_tremor.pdf"))
+plt.show()
+
 from py_neuromodulation import nm_stats
 nm_stats.permutationTest_relative(
-    df_comp.query("label == 'pkg_tremor' and during_label_class == False and type == 'corr_pr'")["value"].values,
-    df_comp.query("label == 'pkg_tremor' and during_label_class == True and type == 'corr_pr'")["value"].values,
+    df_comp.query("label == 'pkg_bk' and during_label_class == False and type == 'corr_pr'")["value"].values,
+    df_comp.query("label == 'pkg_bk' and during_label_class == True and type == 'corr_pr'")["value"].values,
     False, None, 5000
 )  # <10^-5
 
 during_ = df_comp.query("label == 'pkg_tremor' and during_label_class == True and type == 'corr_pr'")["value"].values
 
 nm_stats.permutationTest_relative(
-    df_comp.query("label == 'pkg_tremor' and during_label_class == False and type == 'corr_pr'")["value"].values,
-    df_comp.query("label == 'pkg_tremor' and during_label_class == True and type == 'corr_pr'")["value"].values,
+    df_comp.query("label == 'pkg_dk' and during_label_class == False and type == 'corr_pr'")["value"].values,
+    df_comp.query("label == 'pkg_dk' and during_label_class == True and type == 'corr_pr'")["value"].values,
     False, None, 5000
 )  # <10^-5
 
