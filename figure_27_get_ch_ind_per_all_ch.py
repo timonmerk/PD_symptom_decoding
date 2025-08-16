@@ -49,6 +49,10 @@ def run_channel(sub, ch, ch_idx):
                     y,
                     cv=model_selection.KFold(n_splits=3, shuffle=False),
                 )
+                model = CatBoostClassifier(verbose=False, class_weights=utils.class_weight.compute_class_weight(
+                    class_weight="balanced", classes=np.unique(y), y=y
+                ))
+                model.fit(X, y)
             except:
                 continue
 
@@ -64,14 +68,15 @@ def run_channel(sub, ch, ch_idx):
                 "ch_orig": ch_names_orig[ch_idx],
                 "label": label,
                 "classification": CLASSIFICATION,
-                "per": per
+                "per": per,
+                "feature_importances": model.feature_importances_,
             })
     df_per_ind = pd.DataFrame(per_ind)
     df_per_ind.to_csv(os.path.join(PATH_OUT, f"df_per_ind_all_{sub}_{ch}.csv"))
 
 if __name__ == "__main__":
 
-    RUN_DECODING = False
+    RUN_DECODING = True
     if RUN_DECODING:
         RUN_ON_CLUSTER = True
         if RUN_ON_CLUSTER is False:
@@ -80,7 +85,7 @@ if __name__ == "__main__":
             ch_used = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/ch_used_per_sub.csv"
             PATH_OUT = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
         else:
-            PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime/ind_ch"
+            PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime/ind_ch/with_importances"
             PATH_ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/all_merged_with_condition.csv"
             ch_used = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/ch_used_per_sub.csv"
         # num runs = len(sub) * 4
@@ -116,7 +121,7 @@ if __name__ == "__main__":
 
         run_channel(sub, ch, ch_idx)
 
-    MERGE_FILES = True
+    MERGE_FILES = False
     if MERGE_FILES:
         #PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
         PATH_PER = r'/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/without_night/ind_ch'
@@ -136,7 +141,7 @@ if __name__ == "__main__":
         new_df = pd.concat(l_, axis=0).reset_index(drop=True)
         new_df.to_csv(os.path.join(PATH_PER, "df_per_ind_all.csv"))
         
-    MERGE_WITH_COORDS = True
+    MERGE_WITH_COORDS = False
     if MERGE_WITH_COORDS:
         #PATH_PER = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/out_dir"
         PATH_PER = r'/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/paper_per/without_night/ind_ch'
