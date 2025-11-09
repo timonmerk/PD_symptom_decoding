@@ -184,3 +184,11 @@ meshes/mesh_my_plt/*
 video/*
 *.mp4
 *.pdf
+
+connectomic_DBS/Figure1_screenshots/*
+connectomic_DBS/Organized_results/*
+connectomic_DBS/Plots/*
+connectomic_DBS/Raw_results
+connectomic_DBS/Screenshots_for_Video/*
+connectomic_DBS/Videos/*
+connectomic_DBS/VTAs/*

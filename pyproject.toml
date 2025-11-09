@@ -69,6 +69,7 @@ dependencies = [
     "llvmlite>=0.43.0",
     "statannotations>=0.7.1",
     "ffmpeg>=1.4",
+    "skops>=0.13.0",
 ]
 
 [project.optional-dependencies]

@@ -42,6 +42,11 @@ def run_channel(sub, ch, ch_idx):
             X = X[~idx_nan]
             y = y[np.array(~idx_nan)]
             
+            # save the X columns to pickle
+            # with open(os.path.join("publication_figures", f"cols_ind_chs.pkl"), "wb") as f:
+            #     cols = X.columns
+            #     pd.to_pickle(cols, f)
+
             try:
                 y_pr = model_selection.cross_val_predict(
                     model,
@@ -78,14 +83,15 @@ if __name__ == "__main__":
 
     RUN_DECODING = True
     if RUN_DECODING:
-        RUN_ON_CLUSTER = True
+        RUN_ON_CLUSTER = False
         if RUN_ON_CLUSTER is False:
             PATH_ = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length_all_ch/all_merged.csv"
             PATH_ = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/features/merged_std_10s_window_length/all_merged_with_condition.csv"
+            PATH_ = "/Users/Timon/Downloads/all_merged_with_condition.csv"
             ch_used = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per/ch_used_per_sub.csv"
             PATH_OUT = r"/Users/Timon/Library/CloudStorage/OneDrive-Charité-UniversitätsmedizinBerlin/Shared Documents - ICN Data World/General/Data/UCSF_OLARU/out_per"
         else:
-            
+
             PATH_OUT = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/out_per/out_daytime/ind_ch/with_importances"
             PATH_ = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/all_merged_with_condition.csv"
             ch_used = "/data/cephfs-1/home/users/merkt_c/work/PD_symptom_decoding/features/merged_std_10s_window_length/ch_used_per_sub.csv"
@@ -108,8 +114,8 @@ if __name__ == "__main__":
         #         print(f"ch: {ch}")
         #         run_channel(sub, ch, ch_idx)
 
-        run_idx = int(sys.argv[1])
-        #run_idx = 0
+        #run_idx = int(sys.argv[1])
+        run_idx = 0
         sub_idx = run_idx // 4
         ch_idx = run_idx % 4
 
