@@ -7,6 +7,8 @@ import os
 
 ESTIMASTE_QUASI_PROBA = True
 
+# df_out_predictions_true_class_zs
+
 if ESTIMASTE_QUASI_PROBA:
 
     df = pd.read_csv("publication_figures/df_out_predictions_true.csv")
@@ -56,7 +58,7 @@ if ESTIMASTE_QUASI_PROBA:
             df_cp["pr_zs"] = stats.zscore(df_sub_label["pr"])
             df_.append(
                 df_cp
-            )
+            ) 
     df_all = pd.concat(df_, ignore_index=True)
     df_all.to_csv("publication_figures/df_out_predictions_true_class_quasi_proba.csv", index=False)
 else:

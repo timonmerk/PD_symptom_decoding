@@ -27,6 +27,8 @@ df_all["hour"] = df_all["pkg_dt"].dt.hour
 df_all = df_all[[c for c in df_all.columns if not c.startswith("pkg")]]
 columns_ = df_all.columns
 
+
+
 plt.figure(figsize=(10, 10))
 cols_show = 50
 for idx_, pkg_decode_label in enumerate(["pkg_dk", "pkg_bk", "pkg_tremor"]):
